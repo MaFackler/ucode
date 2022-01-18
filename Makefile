@@ -1,10 +1,10 @@
-CC=g++
-CFLAGS=-Wall -Wextra
-
-all: ucode
-
-ucode: src/main.cpp
-	$(CC) $(CFLAGS) $< -o $@
+MAKEFLAGS=--no-print-directory
+all: build
+	make -C build
 
 clean:
-	rm ucode
+	make clean -C build
+
+build:
+	mkdir $@
+	cmake -B $@ -S .
