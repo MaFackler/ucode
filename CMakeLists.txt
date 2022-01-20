@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 14)
 if (MSVC)
     add_compile_options(/W3 /WX)
 else()
-    add_compile_options(-W -Wall -Werror)
+    add_compile_options(-g -W -Wall -Werror)
 endif()
 
-add_executable(${PROJECT_NAME} src/main.cpp src/ucode_terminal.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/ucode_terminal.cpp src/ucode_editor.cpp)
 

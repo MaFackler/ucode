@@ -23,3 +23,91 @@ void Terminal::init() {
 void Terminal::shutdown() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &this->orginal);
 }
+
+char Terminal::read_char() {
+    char res;
+    ::read(STDIN_FILENO, &res, 1);
+
+#if 0
+    if (res == '\x1b') {
+        char sequence[3];
+        if (::read(STDINT_FILENO, &sequence[0], 1) != 1) {
+            return res;
+        }
+        if (::read(STDINT_FILENO, &sequence[1], 1) != 1) {
+            return res;
+        }
+
+        if (seq[0] == '[') {
+            // TODO: continue handling special keys
+        }
+    }
+#endif
+    return res;
+}
+
+void Terminal::clear_screen() {
+    this->write_escape("2J");
+}
+
+void Terminal::clear_line() {
+    this->write_escape("K");
+}
+
+void Terminal::reset_cursor() {
+    this->write_escape("H");
+}
+
+void Terminal::set_cursor_visibility(bool visible) {
+    if (visible) {
+        this->write_escape("?25h");
+    } else {
+        this->write_escape("?25l");
+    }
+}
+
+void Terminal::set_cursor_pos(int col, int row) {
+    // TODO: copies
+    std::stringstream ss;
+    ss << row + 1 << ";" << col + 1 << "H";
+    this->write_escape(ss.str().c_str());
+}
+
+void Terminal::write(const char *s) {
+    this->buffer += s;
+}
+
+void Terminal::write_escape(const char *s) {
+    this->write("\x1b[");
+    this->write(s);
+}
+
+
+void Terminal::flush() {
+    ::write(STDOUT_FILENO, this->buffer.c_str(), this->buffer.size());
+}
+
+std::tuple<int, int> Terminal::get_window_size() {
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != -1) {
+        // TODO: error handling
+    }
+    return std::make_tuple(ws.ws_col, ws.ws_row);
+}
+
+std::tuple<int, int> Terminal::get_cursor_pos() {
+    char buf[32];
+    ::write(STDOUT_FILENO, "\x1b[6n", 4);
+    unsigned int i = 0;
+    while (i < sizeof(buf) - 1) {
+        if (read(STDIN_FILENO, &buf[i], 1) != 1) break;
+        if (buf[i] == 'R') break;
+        i++;
+    }
+
+    buf[i] = 0;
+    int rows = 0, cols = 0;
+    std::sscanf(&buf[2], "%d;%d", &rows, &cols);
+    return std::make_tuple(cols, rows);
+}
+
