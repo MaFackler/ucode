@@ -12,6 +12,7 @@ struct Editor {
     int columns = 0;
     int rows = 0;
 
+    string buffer_name;
     vector<string> lines;
 
     void open_file(const char *filename);

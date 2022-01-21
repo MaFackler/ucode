@@ -22,6 +22,7 @@ struct Terminal {
     void clear_screen();
     void clear_line();
     void reset_cursor();
+    void set_invert_color(bool value);
     void set_cursor_visibility(bool visible);
     void set_cursor_pos(int col, int row);
     void write(const char *s);

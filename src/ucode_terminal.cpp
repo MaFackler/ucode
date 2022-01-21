@@ -58,6 +58,14 @@ void Terminal::reset_cursor() {
     this->write_escape("H");
 }
 
+void Terminal::set_invert_color(bool value) {
+    if (value) {
+        this->write_escape("7m");
+    } else {
+        this->write_escape("m");
+    }
+}
+
 void Terminal::set_cursor_visibility(bool visible) {
     if (visible) {
         this->write_escape("?25h");
@@ -85,6 +93,7 @@ void Terminal::write_escape(const char *s) {
 
 void Terminal::flush() {
     ::write(STDOUT_FILENO, this->buffer.c_str(), this->buffer.size());
+    this->buffer.clear();
 }
 
 std::tuple<int, int> Terminal::get_window_size() {

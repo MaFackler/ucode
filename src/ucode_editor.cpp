@@ -7,5 +7,6 @@ void Editor::open_file(const char *filename) {
         while (std::getline(fp, line)) {
             this->lines.push_back(line);
         }
+        this->buffer_name = string(filename);
     }
 }

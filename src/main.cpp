@@ -1,5 +1,7 @@
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <algorithm>
 
 #include "ucode_terminal.h"
 #include "ucode_editor.h"
@@ -25,7 +27,7 @@ constexpr char ctrl_key(char k) {
     return k & 0x1f;
 }
 
-int main(int, char **) {
+int main(int argc, char **argv) {
     t.init();
     std::atexit(exit_handler);
     auto size = t.get_window_size();
@@ -33,12 +35,13 @@ int main(int, char **) {
     e.rows = get<1>(size);
     //auto cursor_pos = t.get_cursor_pos();
     
-    e.open_file("Makefile");
+    if (argc == 2) {
+        e.open_file(argv[1]);
+    }
     while (1) {
         char c = t.read_char();
         if (c == ctrl_key('q'))
             break;
-
 
         if (c == 's') {
             e.row++;
@@ -58,20 +61,32 @@ int main(int, char **) {
         e.col = std::max(0, e.col);
         e.col = std::min(e.columns - 1, e.col);
 
+        // begin
+        t.set_cursor_visibility(false);
         t.reset_cursor();
 
-        for (auto &line: e.lines) {
+
+        int endline = e.lines.size();
+        for (int row_index = 0; row_index < e.rows - 1; ++row_index) {
             t.clear_line();
-            t.write(line.c_str());
+            if (row_index < endline) {
+                t.write(e.lines[row_index].c_str());
+            } else {
+                t.write("~");
+            }
             t.write("\r\n");
         }
 
-        for (int i = e.lines.size() + 1; i < e.rows; ++i) {
-            t.clear_line();
-            t.write("~\r\n");
-        }
+        // Draw statusline
+        t.set_invert_color(true);
+        t.clear_line();
+        string statusline = e.buffer_name;
+        statusline.append(e.columns - statusline.size(), ' ');
+        t.write(statusline.c_str());
+        t.set_invert_color(false);
 
         t.set_cursor_pos(e.col, e.row);
+        t.set_cursor_visibility(true);
 
         t.flush();
     }
