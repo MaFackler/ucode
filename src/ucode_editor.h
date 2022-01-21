@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 using std::vector;
 using std::string;
@@ -16,4 +17,5 @@ struct Editor {
     vector<string> lines;
 
     void open_file(const char *filename);
+    void move_cursor(int dx, int dy);
 };

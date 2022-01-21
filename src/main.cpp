@@ -3,6 +3,10 @@
 #include <string>
 #include <algorithm>
 
+//#define DOCTEST_CONFIG_DISABLE
+#define DOCTEST_CONFIG_IMPLEMENT
+#include <doctest.h>
+
 #include "ucode_terminal.h"
 #include "ucode_editor.h"
 
@@ -27,7 +31,27 @@ constexpr char ctrl_key(char k) {
     return k & 0x1f;
 }
 
+#ifndef DOCTEST_CONFIG_DISABLE
+int handle_doctest(int argc, char **argv) {
+    doctest::Context ctx;
+    //ctx.setOption("--no-run", true);
+    ctx.applyCommandLine(argc, argv);
+    int res = ctx.run();
+    if (ctx.shouldExit())
+        return 1;
+    
+    return res;
+}
+#endif
+
 int main(int argc, char **argv) {
+
+#ifndef DOCTEST_CONFIG_DISABLE
+    int should_close = handle_doctest(argc, argv);
+    if (should_close) {
+        return should_close;
+    }
+#endif
     t.init();
     std::atexit(exit_handler);
     auto size = t.get_window_size();
@@ -43,23 +67,22 @@ int main(int argc, char **argv) {
         if (c == ctrl_key('q'))
             break;
 
+        int dx = 0; 
+        int dy = 0;
         if (c == 's') {
-            e.row++;
+            dy++;
         }
         if (c == 'w') {
-            e.row--;
+            dy--;
         }
         if (c == 'a') {
-            e.col--;
+            dx--;
         }
         if (c == 'd') {
-            e.col++;
+            dx++;
         }
 
-        e.row = std::max(0, e.row);
-        e.row = std::min(e.rows - 1, e.row);
-        e.col = std::max(0, e.col);
-        e.col = std::min(e.columns - 1, e.col);
+        e.move_cursor(dx, dy);
 
         // begin
         t.set_cursor_visibility(false);
