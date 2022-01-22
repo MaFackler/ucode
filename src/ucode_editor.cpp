@@ -55,4 +55,30 @@ TEST_CASE("Editor::move_cursor") {
         CHECK(e.row == 2);
     }
 }
+
+void Editor::insert_char(char c) {
+    if (this->lines.size() == 0) {
+        this->lines.emplace_back("");
+    }
+    auto &s = this->lines[this->row];
+    s.insert(s.begin() + this->col++, c);
+}
+
+TEST_CASE("Editor::insert_char") {
+    Editor e;
+    CHECK(e.lines.size() == 0);
+    CHECK(e.col == 0);
+
+    e.insert_char('h');
+    CHECK(e.lines[0].size() == 1);
+    CHECK(e.col == 1);
+    CHECK(e.lines[0] == "h");
+
+    e.insert_char('l');
+    CHECK(e.lines[0] == "hl");
+
+    e.move_cursor(-1, 0);
+    e.insert_char('e');
+    CHECK(e.lines[0] == "hel");
+}
      

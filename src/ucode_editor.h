@@ -14,8 +14,10 @@ struct Editor {
     int rows = 0;
 
     string buffer_name;
+    // TODO: some kind of Buffer Structure like GapBuffer?
     vector<string> lines;
 
     void open_file(const char *filename);
     void move_cursor(int dx, int dy);
+    void insert_char(char c);
 };

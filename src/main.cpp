@@ -69,17 +69,21 @@ int main(int argc, char **argv) {
 
         int dx = 0; 
         int dy = 0;
-        if (c == 's') {
+        if (c == ctrl_key('n')) {
             dy++;
         }
-        if (c == 'w') {
+        if (c == ctrl_key('p')) {
             dy--;
         }
-        if (c == 'a') {
+        if (c == ctrl_key('h')) {
             dx--;
         }
-        if (c == 'd') {
+        if (c == ctrl_key('l')) {
             dx++;
+        }
+
+        if (std::isalnum(c)) {
+            e.insert_char(c);
         }
 
         e.move_cursor(dx, dy);
