@@ -11,6 +11,7 @@ using std::cout;
 using std::tuple;
 using std::string;
 
+#define TERM_ESCAPE_CODE '\x1b'
 #define TERM_ESCAPE(s) "\x1b[" s
 
 struct Terminal {

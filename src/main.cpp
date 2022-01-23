@@ -68,6 +68,33 @@ int main(int argc, char **argv) {
 
         int dx = 0; 
         int dy = 0;
+        if (c == TERM_ESCAPE_CODE) {
+            char c1 = t.read_char();
+            if (c1 == '[') {
+                char c2 = t.read_char();
+                switch (c2) {
+                    case 'A':
+                        // UP
+                        dy--;
+                        break;
+                    case 'B':
+                        // DOWN
+                        dy++;
+                        break;
+                    case 'C':
+                        // RIGHT
+                        dx++;
+                        break;
+                    case 'D':
+                        // LEFT
+                        dx--;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         if (c == ctrl_key('n')) {
             dy++;
         }
