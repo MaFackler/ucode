@@ -55,8 +55,8 @@ int main(int argc, char **argv) {
     t.init();
     std::atexit(exit_handler);
     auto size = t.get_window_size();
-    e.columns = get<0>(size);
-    e.rows = get<1>(size);
+    e.screen_columns = get<0>(size);
+    e.screen_rows = get<1>(size);
     //auto cursor_pos = t.get_cursor_pos();
     
     if (argc == 2) {
@@ -86,6 +86,19 @@ int main(int argc, char **argv) {
             e.insert_char(c);
         }
 
+        if (c == ctrl_key('s')) {
+            e.save_file();
+        }
+
+        if (c == 0x1B) {
+            // Escape
+        }
+
+        if (c == 0x0D) {
+            // CR
+            e.insert_new_line();
+        }
+
         e.move_cursor(dx, dy);
 
         // begin
@@ -94,7 +107,7 @@ int main(int argc, char **argv) {
 
 
         int endline = e.lines.size();
-        for (int row_index = 0; row_index < e.rows - 1; ++row_index) {
+        for (int row_index = 0; row_index < e.screen_rows - 1; ++row_index) {
             t.clear_line();
             if (row_index < endline) {
                 t.write(e.lines[row_index].c_str());
@@ -108,7 +121,7 @@ int main(int argc, char **argv) {
         t.set_invert_color(true);
         t.clear_line();
         string statusline = e.buffer_name;
-        statusline.append(e.columns - statusline.size(), ' ');
+        statusline.append(e.screen_columns - statusline.size(), ' ');
         t.write(statusline.c_str());
         t.set_invert_color(false);
 
