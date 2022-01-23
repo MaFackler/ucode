@@ -8,6 +8,7 @@ using std::vector;
 using std::string;
 
 struct Editor {
+    bool quit = false;
     int col = 0;
     int row = 0;
     int screen_columns = 0;
