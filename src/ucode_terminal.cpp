@@ -101,7 +101,7 @@ std::tuple<int, int> Terminal::get_window_size() {
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != -1) {
         // TODO: error handling
     }
-    return std::make_tuple(ws.ws_col, ws.ws_row);
+    return {ws.ws_col, ws.ws_row};
 }
 
 std::tuple<int, int> Terminal::get_cursor_pos() {

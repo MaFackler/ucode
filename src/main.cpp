@@ -54,10 +54,9 @@ int main(int argc, char **argv) {
 #endif
     t.init();
     std::atexit(exit_handler);
-    auto size = t.get_window_size();
-    e.screen_columns = get<0>(size);
-    e.screen_rows = get<1>(size);
-    //auto cursor_pos = t.get_cursor_pos();
+    auto[screen_columns, screen_rows] = t.get_window_size();
+    e.screen_columns = screen_columns;
+    e.screen_rows = screen_rows;
     
     if (argc == 2) {
         e.open_file(argv[1]);
