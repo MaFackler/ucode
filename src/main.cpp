@@ -9,6 +9,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest.h>
 
+#include "ucode_log.h"
 #include "ucode_input.h"
 #include "ucode_terminal.h"
 #include "ucode_editor.h"
@@ -91,6 +92,7 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
 
 
 
+
     if (def.key == Key::NONE) {
         switch (c) {
             case 0x0D: def.key = Key::RETURN; break;
@@ -132,6 +134,8 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
 
 int main(int argc, char **argv) {
 
+    LogInit();
+    Debug << "Logging initialized";
 #ifndef DOCTEST_CONFIG_DISABLE
     int should_close = handle_doctest(argc, argv);
     if (should_close) {
@@ -157,6 +161,7 @@ int main(int argc, char **argv) {
     keybindings[Key::UP] = &move_row_up;
     keybindings[(Key) 'z'] = &quit;
     keybindings[KeyDef('q', true)] = &quit;
+
     
     if (argc == 2) {
         e.open_file(argv[1]);
