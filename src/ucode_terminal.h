@@ -28,6 +28,7 @@ struct Terminal {
     void set_cursor_pos(int col, int row);
     void write(const char *s);
     void write_escape(const char *s);
+    void write_new_line();
 
     void flush();
 

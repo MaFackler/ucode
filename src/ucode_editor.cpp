@@ -1,7 +1,15 @@
 #include <doctest.h>
 #include "ucode_editor.h"
 
+void Editor::open_dir(const char *dirname) {
+    this->state = EditorState::OPEN_DIRECTORY;
+    for (auto &f: std::filesystem::directory_iterator(dirname)) {
+        this->files.push_back(f.path().string());
+    }
+}
+
 void Editor::open_file(const char *filename) {
+    this->state = EditorState::BUFFER;
     std::ifstream fp(filename);
     if (fp.is_open()) {
         string line;
@@ -201,4 +209,4 @@ TEST_CASE("Editor::insert_new_line") {
     }
 
 }
-     
+

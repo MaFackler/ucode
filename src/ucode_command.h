@@ -11,20 +11,27 @@ struct ICommand {
 struct KeyDefHash {
     size_t operator()(const KeyDef &p) const {
         auto h1 = std::hash<int>()(static_cast<int>(p.key));
-        auto h2 = std::hash<bool>()(p.ctrl);
-        return h1 ^ h2;
+        auto h2 = std::hash<bool>()(p.ctrl.value);
+        auto h3 = std::hash<bool>()(p.shift.value);
+        return h1 ^ h2 ^ h3;
     }
 };
 typedef std::unordered_map<KeyDef, ICommand*, KeyDefHash> command_map;
+typedef std::unordered_map<EditorState, command_map> state_command_map;
 
+
+template<int dx, int dy>
 struct CmdMoveCursor: ICommand {
-    int dx;
-    int dy;
-    CmdMoveCursor(int dx, int dy): dx(dx), dy(dy) { }
-
     void execute(Editor &e) {
         e.move_cursor(dx, dy);
     }
+};
+
+template <EditorState s>
+struct CmdGotoState: ICommand {
+    void execute(Editor &e) {
+        e.state = s;
+    };
 };
 
 struct CmdQuit: ICommand {
@@ -33,9 +40,9 @@ struct CmdQuit: ICommand {
     }
 };
 
-struct CmdInsertLine: ICommand {
-    void execute(Editor &e) {
-        e.insert_new_line();
-    }
-};
 
+#define MAKE_SIMPLE_COMMAND(name, func) \
+    struct name: ICommand { void execute(Editor &e) { e.func(); } };
+
+
+MAKE_SIMPLE_COMMAND(CmdInsertLine, insert_new_line);

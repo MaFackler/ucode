@@ -50,7 +50,7 @@ int handle_doctest(int argc, char **argv) {
 }
 #endif
 
-void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
+void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
     char c = t.read_char();
 
     KeyDef def;
@@ -92,16 +92,17 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
         // VT 100 ctrl handling
         // NOTE: Assume all key lower than space are ctrl keys
         // except Ascii 0
-        def.ctrl = true;
+        def.ctrl.value = true;
         def.key = Key(0x60 | static_cast<int>(def.key));
     }
-    if (keybindings.find(def) != keybindings.end()) {
-        ICommand* cmd = keybindings[def];
+    
+    if (keybindings[e.state].find(def) != keybindings[e.state].end()) {
+        ICommand* cmd = keybindings[e.state][def];
         cmd->key = def.key;
         cmd->execute(e);
     } else {
         // TODO: should this also be a command?
-        if (std::isalnum((char) def.key)) {
+        if (e.state == EditorState::BUFFER && std::isalnum((char) def.key)) {
             e.insert_char((char) def.key);
         }
     }
@@ -124,7 +125,7 @@ int main(int argc, char **argv) {
     e.screen_rows = screen_rows;
 
 
-    command_map keybindings;
+    state_command_map keybindings;
     Init(keybindings);
     
     if (argc == 2) {
@@ -139,15 +140,37 @@ int main(int argc, char **argv) {
         t.reset_cursor();
 
 
-        int endline = e.lines.size();
+        auto draw_line = +[](int row_index) { (void) row_index; };
+
+        if (e.state == EditorState::BUFFER) {
+            draw_line = +[](int row_index) {
+                int endline = e.lines.size();
+                if (row_index < endline) {
+                    t.write(e.lines[row_index].c_str());
+                } else {
+                    t.write("~");
+                }
+                t.write_new_line();
+            };
+        } else if (e.state == EditorState::OPEN_DIRECTORY) {
+            draw_line = +[](int row_index) {
+                int endline = e.files.size();
+                if (row_index < endline) {
+                    if (row_index == (int) e.file_index)
+                        t.set_invert_color(true);
+
+                    t.write(e.files[row_index].c_str());
+                    t.write_new_line();
+
+                    if (row_index == (int) e.file_index)
+                        t.set_invert_color(false);
+                }
+            };
+        }
+
         for (int row_index = 0; row_index < e.screen_rows - 1; ++row_index) {
             t.clear_line();
-            if (row_index < endline) {
-                t.write(e.lines[row_index].c_str());
-            } else {
-                t.write("~");
-            }
-            t.write("\r\n");
+            draw_line(row_index);
         }
 
         // Draw statusline

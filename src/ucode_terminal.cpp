@@ -90,6 +90,10 @@ void Terminal::write_escape(const char *s) {
     this->write(s);
 }
 
+void Terminal::write_new_line() {
+    this->write("\r\n");
+}
+
 
 void Terminal::flush() {
     ::write(STDOUT_FILENO, this->buffer.c_str(), this->buffer.size());
