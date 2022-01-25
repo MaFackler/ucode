@@ -103,21 +103,22 @@ void Editor::insert_new_line() {
     if (this->lines.size()) {
         string &line = this->lines[this->row];
 
+        string to_insert("");
+        auto pos = this->lines.begin() + this->row;
         if (this->col == 0) {
             // Start of line
-            this->lines.emplace(this->lines.begin() + this->row);
+            //this->lines.emplace(this->lines.begin() + this->row);
         } else if (static_cast<int>(line.size()) == this->col) {
             // End of line
-            this->lines.insert(this->lines.begin() + this->row + 1, "");
+            //this->lines.insert(this->lines.begin() + this->row + 1, "");
+            pos++;
         } else {
             // Middle line
-            int index = this->col;
-            // TODO: copies?
-            string first = line.substr(0, index);
-            string second = line.substr(index);
-            this->lines[this->row] = first;
-            this->lines.insert(this->lines.begin() + this->row + 1, second);
+            to_insert = line.substr(this->col);
+            this->lines[this->row] = line.substr(0, this->col);
+            pos++;
         }
+        this->lines.insert(pos, to_insert);
         this->row++;
         this->col = 0;
     } else {
