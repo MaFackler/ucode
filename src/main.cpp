@@ -90,10 +90,7 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
         }
     }
 
-
-
-
-    if (def.key == Key::NONE) {
+    if (c && def.key == Key::NONE) {
         switch (c) {
             case 0x0D: def.key = Key::RETURN; break;
             case 0x1B: def.key = Key::ESCAPE; break;
@@ -116,8 +113,6 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
         // TODO: should this also be a command?
         if (std::isalnum((char) def.key)) {
             e.insert_char((char) def.key);
-        } else if (def.key == Key::RETURN) {
-            e.insert_new_line();
         }
 
     }
@@ -149,18 +144,19 @@ int main(int argc, char **argv) {
     e.screen_rows = screen_rows;
 
 
-    CmdMoveCursor move_col_right(1, 0);
-    CmdMoveCursor move_col_left(-1, 0);
-    CmdMoveCursor move_row_up(0, -1);
-    CmdMoveCursor move_row_down(0, 1);
-    CmdQuit quit;
+    CmdMoveCursor cmd_move_col_right(1, 0);
+    CmdMoveCursor cmd_move_col_left(-1, 0);
+    CmdMoveCursor cmd_move_row_up(0, -1);
+    CmdMoveCursor cmd_move_row_down(0, 1);
+    CmdInsertLine cmd_insert_new_line;
+    CmdQuit cmd_quit;
     command_map keybindings;
-    keybindings[Key::LEFT] = &move_col_left;
-    keybindings[Key::RIGHT] = &move_col_right;
-    keybindings[Key::DOWN] = &move_row_down;
-    keybindings[Key::UP] = &move_row_up;
-    keybindings[(Key) 'z'] = &quit;
-    keybindings[KeyDef('q', true)] = &quit;
+    keybindings[Key::LEFT] = &cmd_move_col_left;
+    keybindings[Key::RIGHT] = &cmd_move_col_right;
+    keybindings[Key::DOWN] = &cmd_move_row_down;
+    keybindings[Key::UP] = &cmd_move_row_up;
+    keybindings[KeyDef('q', true)] = &cmd_quit;
+    keybindings[Key::RETURN] = &cmd_insert_new_line;
 
     
     if (argc == 2) {

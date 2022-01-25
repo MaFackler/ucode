@@ -21,3 +21,9 @@ struct CmdQuit: ICommand {
     }
 };
 
+struct CmdInsertLine: ICommand {
+    void execute(Editor &e) {
+        e.insert_new_line();
+    }
+};
+

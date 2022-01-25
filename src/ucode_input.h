@@ -2,15 +2,17 @@
 
 enum struct Key {
     NONE = 0,
-    LEFT,
+    // NOTE: alnum keys will be the character value
+    SPACE = 32,
+
+    // NOTE: start at 128 that it dont collides with ascii table
+    LEFT = 128,
     RIGHT,
     UP,
     DOWN,
     ESCAPE,
     RETURN,
 
-    // NOTE: alnum keys will be the character value
-    SPACE = 32,
 };
 
 struct KeyDef {
