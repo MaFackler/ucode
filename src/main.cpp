@@ -114,16 +114,6 @@ void term_handle_key(Terminal &t, command_map &keybindings, Editor &e) {
         if (std::isalnum((char) def.key)) {
             e.insert_char((char) def.key);
         }
-
-    }
-    if (c == 'q') {
-        cout << "got\n";
-    }
-
-    if (c == ctrl_key('h')) {
-        char ctrl_cmp = ctrl_key('q');
-        char ctrl_foo = ctrl_key('a');
-        cout << "got\n" << ctrl_cmp << ctrl_foo;
     }
 }
 
