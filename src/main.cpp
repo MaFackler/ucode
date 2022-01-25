@@ -15,6 +15,17 @@
 #include "ucode_editor.h"
 #include "ucode_command.h"
 
+struct KeyDefHash {
+    size_t operator()(const KeyDef &p) const {
+        auto h1 = std::hash<int>()(static_cast<int>(p.key));
+        auto h2 = std::hash<bool>()(p.ctrl);
+        return h1 ^ h2;
+    }
+};
+typedef std::unordered_map<KeyDef, ICommand*, KeyDefHash> command_map;
+#include "../custom/config.h"
+
+
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 using std::cout;
@@ -26,15 +37,7 @@ using std::map;
 static Terminal t;
 static Editor e;
 
-struct KeyDefHash {
-    size_t operator()(const KeyDef &p) const {
-        auto h1 = std::hash<int>()(static_cast<int>(p.key));
-        auto h2 = std::hash<bool>()(p.ctrl);
-        return h1 ^ h2;
-    }
-};
 
-typedef std::unordered_map<KeyDef, ICommand*, KeyDefHash> command_map;
 
 void exit_handler() {
     t.reset_cursor();
@@ -134,20 +137,8 @@ int main(int argc, char **argv) {
     e.screen_rows = screen_rows;
 
 
-    CmdMoveCursor cmd_move_col_right(1, 0);
-    CmdMoveCursor cmd_move_col_left(-1, 0);
-    CmdMoveCursor cmd_move_row_up(0, -1);
-    CmdMoveCursor cmd_move_row_down(0, 1);
-    CmdInsertLine cmd_insert_new_line;
-    CmdQuit cmd_quit;
     command_map keybindings;
-    keybindings[Key::LEFT] = &cmd_move_col_left;
-    keybindings[Key::RIGHT] = &cmd_move_col_right;
-    keybindings[Key::DOWN] = &cmd_move_row_down;
-    keybindings[Key::UP] = &cmd_move_row_up;
-    keybindings[KeyDef('q', true)] = &cmd_quit;
-    keybindings[Key::RETURN] = &cmd_insert_new_line;
-
+    Init(keybindings);
     
     if (argc == 2) {
         e.open_file(argv[1]);
