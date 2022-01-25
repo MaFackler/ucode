@@ -15,14 +15,6 @@
 #include "ucode_editor.h"
 #include "ucode_command.h"
 
-struct KeyDefHash {
-    size_t operator()(const KeyDef &p) const {
-        auto h1 = std::hash<int>()(static_cast<int>(p.key));
-        auto h2 = std::hash<bool>()(p.ctrl);
-        return h1 ^ h2;
-    }
-};
-typedef std::unordered_map<KeyDef, ICommand*, KeyDefHash> command_map;
 #include "../custom/config.h"
 
 
