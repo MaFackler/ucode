@@ -18,7 +18,6 @@
 #include "../custom/config.h"
 
 
-#define CTRL_KEY(k) ((k) & 0x1f)
 
 using std::cout;
 using std::get;
@@ -36,10 +35,6 @@ void exit_handler() {
     t.clear_screen();
     t.flush();
     t.shutdown();
-}
-
-constexpr char ctrl_key(char k) {
-    return k & 0x1f;
 }
 
 #ifndef DOCTEST_CONFIG_DISABLE

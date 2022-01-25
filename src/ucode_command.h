@@ -1,5 +1,6 @@
 #pragma once
 #include "ucode_input.h"
+#include "ucode_editor.h"
 
 
 struct ICommand {
