@@ -105,7 +105,7 @@ void Editor::insert_new_line() {
 
         if (this->col == 0) {
             // Start of line
-            this->lines.emplace(this->lines.begin());
+            this->lines.emplace(this->lines.begin() + this->row);
         } else if (static_cast<int>(line.size()) == this->col) {
             // End of line
             this->lines.insert(this->lines.begin() + this->row + 1, "");
@@ -191,6 +191,13 @@ TEST_CASE("Editor::insert_new_line") {
         CHECK(e.lines[1] == "");
         CHECK(e.row == 1);
         CHECK(e.col == 0);
+
+        e.insert_new_line();
+        CHECK(e.lines.size() == 3);
+        CHECK(e.lines[0] == "Hello");
+        CHECK(e.lines[1] == "");
+        CHECK(e.lines[2] == "");
     }
+
 }
      
