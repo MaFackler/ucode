@@ -1,16 +1,30 @@
 #include <doctest.h>
 #include "ucode_editor.h"
 
+namespace fs = std::filesystem;
+
 void Editor::open_dir(const char *dirname) {
     this->state = EditorState::OPEN_DIRECTORY;
-    for (auto &f: std::filesystem::directory_iterator(dirname)) {
-        this->files.push_back(f.path().string());
+
+    if (std::string(dirname) != ".") {
+        this->relative_dir = fs::path(this->relative_dir) / fs::path(dirname);
+    }
+
+    string abspath = this->get_current_folder();
+    this->files.clear();
+    this->files.emplace_back("..");
+    for (auto &f: std::filesystem::directory_iterator(abspath)) {
+        //this->files.emplace_back(f.path().string().substr(0));
+        this->files.emplace_back(f.path().filename());
     }
 }
 
 void Editor::open_file(const char *filename) {
     this->state = EditorState::BUFFER;
-    std::ifstream fp(filename);
+    this->lines.clear();
+    fs::path abspath = fs::path(this->get_current_folder());
+    abspath /= filename;
+    std::ifstream fp(abspath.string());
     if (fp.is_open()) {
         string line;
         while (std::getline(fp, line)) {
@@ -208,5 +222,21 @@ TEST_CASE("Editor::insert_new_line") {
         CHECK(e.lines[2] == "");
     }
 
+}
+
+string Editor::get_current_folder() {
+    fs::path abspath = fs::path(this->cwd);
+    if (this->relative_dir != ".") {
+        abspath /= fs::path(this->relative_dir);
+    }
+    return abspath.string();
+}
+
+TEST_CASE("Editor::get_current_folder") {
+    Editor e;
+    e.cwd = ".";
+    e.relative_dir = ".";
+
+    CHECK(e.get_current_folder() == ".");
 }
 

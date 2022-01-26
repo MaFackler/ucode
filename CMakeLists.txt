@@ -9,5 +9,7 @@ else()
 endif()
 
 include_directories(libs/doctest/doctest)
-add_executable(${PROJECT_NAME} src/main.cpp src/ucode_terminal.cpp src/ucode_editor.cpp src/ucode_command.cpp src/ucode_input.cpp)
+
+file(GLOB SRC "src/*.cpp")
+add_executable(${PROJECT_NAME} ${SRC})
 

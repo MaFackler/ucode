@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
         // begin
         t.set_cursor_visibility(false);
         t.reset_cursor();
+        bool cursor_visible = true;
 
 
         auto draw_line = +[](int row_index) { (void) row_index; };
@@ -150,27 +151,27 @@ int main(int argc, char **argv) {
                 } else {
                     t.write("~");
                 }
-                t.write_new_line();
             };
         } else if (e.state == EditorState::OPEN_DIRECTORY) {
             draw_line = +[](int row_index) {
                 int endline = e.files.size();
                 if (row_index < endline) {
-                    if (row_index == (int) e.file_index)
+                    if (row_index ==  e.files.index)
                         t.set_invert_color(true);
 
                     t.write(e.files[row_index].c_str());
-                    t.write_new_line();
 
-                    if (row_index == (int) e.file_index)
+                    if (row_index ==  e.files.index)
                         t.set_invert_color(false);
                 }
             };
+            cursor_visible = false;
         }
 
         for (int row_index = 0; row_index < e.screen_rows - 1; ++row_index) {
             t.clear_line();
             draw_line(row_index);
+            t.write_new_line();
         }
 
         // Draw statusline
@@ -182,7 +183,7 @@ int main(int argc, char **argv) {
         t.set_invert_color(false);
 
         t.set_cursor_pos(e.col, e.row);
-        t.set_cursor_visibility(true);
+        t.set_cursor_visibility(cursor_visible);
 
         t.flush();
     }

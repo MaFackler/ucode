@@ -8,6 +8,9 @@ clean:
 test:
 	./build/ucode --exit
 
+tdd:
+	find src/ | entr sh -c 'clear && make && clear && make test'
+
 run:
 	./build/ucode
 

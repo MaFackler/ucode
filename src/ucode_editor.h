@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <filesystem>
 
+#include "ucode_utils.h"
+
 using std::vector;
 using std::string;
 
@@ -28,13 +30,17 @@ struct Editor {
     // NOTE this is the enum defined in config
     // its just an int to avoid dependency
     EditorState state;
-    size_t file_index = 0;
-    std::vector<string> files;
+
+    string cwd{"."};
+    string relative_dir{"."};
+    index_vector<string> files;
     void open_dir(const char *dirname);
     void open_file(const char *filename);
     void save_file();
     void move_cursor(int dx, int dy);
     void insert_char(char c);
     void insert_new_line();
+
+    string get_current_folder();
 
 };
