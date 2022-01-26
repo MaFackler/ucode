@@ -31,6 +31,7 @@ struct Editor {
     // its just an int to avoid dependency
     EditorState state;
 
+    // TODO: cwd not needed?
     string cwd{"."};
     string relative_dir{"."};
     index_vector<string> files;
@@ -42,5 +43,6 @@ struct Editor {
     void insert_new_line();
 
     string get_current_folder();
+    string get_current_filename();
 
 };

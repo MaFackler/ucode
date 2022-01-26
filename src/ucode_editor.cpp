@@ -35,7 +35,7 @@ void Editor::open_file(const char *filename) {
 }
 
 void Editor::save_file() {
-    std::ofstream out(this->buffer_name.c_str());
+    std::ofstream out(this->get_current_filename());
     size_t len = this->lines.size();
     for (size_t i = 0; i < len; ++i) {
         auto &line = this->lines[i];
@@ -240,3 +240,18 @@ TEST_CASE("Editor::get_current_folder") {
     CHECK(e.get_current_folder() == ".");
 }
 
+string Editor::get_current_filename() {
+    string res = fs::path(this->get_current_folder()) / fs::path(this->buffer_name);
+    return res;
+}
+
+TEST_CASE("Editor::get_current_filename") {
+    Editor e;
+    e.cwd = ".";
+    e.relative_dir = ".";
+    e.buffer_name = "hello_world.txt";
+    CHECK(e.get_current_filename() == "./hello_world.txt");
+
+    e.relative_dir = "subdir";
+    CHECK(e.get_current_filename() == "./subdir/hello_world.txt");
+}

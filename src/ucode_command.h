@@ -44,5 +44,5 @@ struct CmdQuit: ICommand {
 #define MAKE_SIMPLE_COMMAND(name, func) \
     struct name: ICommand { void execute(Editor &e) { e.func(); } };
 
-
 MAKE_SIMPLE_COMMAND(CmdInsertLine, insert_new_line);
+MAKE_SIMPLE_COMMAND(CmdSaveFile, save_file);

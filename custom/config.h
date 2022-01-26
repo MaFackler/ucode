@@ -33,9 +33,12 @@ void Init(state_command_map &keybindings) {
     state_buffer[Key::RIGHT] = new CmdMoveCursor<1, 0>();
     state_buffer[Key::DOWN] = new CmdMoveCursor<0, 1>();
     state_buffer[Key::UP] = new CmdMoveCursor<0, -1>();
+    state_buffer[Key::RETURN] = new CmdInsertLine();
+
+    // CTRL
     state_buffer[Key::q + MOD_CTRL] = quit;
     state_buffer[Key::o + MOD_CTRL] = new CmdOpenDirectory();
-    state_buffer[Key::RETURN] = new CmdInsertLine();
+    state_buffer[Key::s + MOD_CTRL] = new CmdSaveFile();
 
     // OPEN_DIRECTORY
     command_map &state_open_directory = keybindings[EditorState::OPEN_DIRECTORY];
