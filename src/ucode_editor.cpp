@@ -5,19 +5,17 @@ namespace fs = std::filesystem;
 
 void Editor::open_dir(const char *dirname) {
     this->state = EditorState::OPEN_DIRECTORY;
-
-
     std::string d = std::string(dirname);
     if (d != ".") {
         if (d == "..") {
-            this->relative_dir = fs::path(this->relative_dir).parent_path();
+            this->current_folder = fs::path(this->current_folder).parent_path();
         } else {
-            this->relative_dir = fs::path(this->relative_dir) / fs::path(d);
+            this->current_folder = fs::path(this->current_folder) / fs::path(d);
         }
     } 
 
     this->files.clear();
-    string abspath = this->get_current_folder();
+    string abspath = this->current_folder;
     if (abspath.empty())
         abspath = ".";
     else
@@ -31,9 +29,9 @@ void Editor::open_dir(const char *dirname) {
 void Editor::open_file(const char *filename) {
     this->state = EditorState::BUFFER;
     this->lines.clear();
-    fs::path abspath = fs::path(this->get_current_folder());
-    abspath /= filename;
-    std::ifstream fp(abspath.string());
+
+    string abspath = path_join(this->current_folder, filename);
+    std::ifstream fp(abspath);
     if (fp.is_open()) {
         string line;
         while (std::getline(fp, line)) {
@@ -41,6 +39,17 @@ void Editor::open_file(const char *filename) {
         }
         this->buffer_name = string(filename);
     }
+}
+
+void Editor::open_target(const char *targetname) {
+    string abspath = path_join(this->current_folder, targetname);
+    if (std::filesystem::is_directory(abspath)) {
+        this->open_dir(targetname);
+    } else {
+        this->open_file(targetname);
+    }
+
+
 }
 
 void Editor::save_file() {
@@ -233,21 +242,8 @@ TEST_CASE("Editor::insert_new_line") {
 
 }
 
-string Editor::get_current_folder() {
-    return this->relative_dir;
-}
-
-TEST_CASE("Editor::get_current_folder") {
-    Editor e;
-    CHECK(e.get_current_folder() == "");
-
-    e.relative_dir = "hello";
-    CHECK(e.get_current_folder() == "hello");
-}
-
 string Editor::get_current_filename() {
-    string res = fs::path(this->get_current_folder()) / fs::path(this->buffer_name);
-    return res;
+    return path_join(this->current_folder, this->buffer_name);
 }
 
 TEST_CASE("Editor::get_current_filename") {
@@ -255,6 +251,6 @@ TEST_CASE("Editor::get_current_filename") {
     e.buffer_name = "hello_world.txt";
     CHECK(e.get_current_filename() == "hello_world.txt");
 
-    e.relative_dir = "subdir";
+    e.current_folder = "subdir";
     CHECK(e.get_current_filename() == "subdir/hello_world.txt");
 }

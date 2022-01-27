@@ -12,16 +12,7 @@ struct CmdMoveSelection: ICommand {
     };
 };
 
-struct CmdSelectFile: ICommand {
-    void execute(Editor &e) {
-        auto &sel = e.files.get_index_item();
-        if (std::filesystem::is_directory(sel)) {
-            e.open_dir(sel.c_str());
-        } else {
-            e.open_file(sel.c_str());
-        }
-    }
-};
+
 
 void Init(state_command_map &keybindings) {
 
@@ -45,7 +36,7 @@ void Init(state_command_map &keybindings) {
     state_open_directory[Key::ESCAPE] = new CmdGotoState<EditorState::BUFFER>;
     state_open_directory[Key::j] = new CmdMoveSelection<1>();
     state_open_directory[Key::k] = new CmdMoveSelection<-1>();
-    state_open_directory[Key::RETURN] = new CmdSelectFile();
+    state_open_directory[Key::RETURN] = new CmdOpenTarget();
     state_open_directory[Key::q + MOD_CTRL] = quit;
 
 }

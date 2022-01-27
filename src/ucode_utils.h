@@ -1,17 +1,30 @@
 #pragma once
+#include <string>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
+
+namespace fs = std::filesystem;
+using std::string;
 
 template<typename T>
 struct index_vector: public std::vector<T> {
-    int index = 0;
+private:
+    int _index = 0;
 
-    void move_index(int delta);
-    T& get_index_item() { return this->at(this->index); }
+public:
+    void move_index(int delta) {
+        this->set_index(this->_index + delta);
+    };
+    void set_index(int index) {
+        this->_index = index;
+        this->_index = std::clamp(this->_index, 0, static_cast<int>(this->size()) - 1);
+    }
+    int index() { return this->_index; };
+    T& get_index_item() { return this->at(this->_index); };
 };
 
-template<typename T>
-void index_vector<T>::move_index(int delta) {
-    this->index += delta;
-    this->index = std::clamp(this->index, 0, static_cast<int>(this->size()) - 1);
+inline
+string path_join(const std::string_view &a, const std::string_view &b) {
+    return (fs::path(a) / fs::path(b)).string();
 }

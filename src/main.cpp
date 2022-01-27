@@ -156,12 +156,12 @@ int main(int argc, char **argv) {
             draw_line = +[](int row_index) {
                 int endline = e.files.size();
                 if (row_index < endline) {
-                    if (row_index ==  e.files.index)
+                    if (row_index ==  e.files.index())
                         t.set_invert_color(true);
 
                     t.write(e.files[row_index].c_str());
 
-                    if (row_index ==  e.files.index)
+                    if (row_index ==  e.files.index())
                         t.set_invert_color(false);
                 }
             };

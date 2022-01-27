@@ -31,16 +31,17 @@ struct Editor {
     // its just an int to avoid dependency
     EditorState state;
 
-    string relative_dir{""};
+    string current_folder{""};
     index_vector<string> files;
+    // TODO: open_dir; open_file should always accept absolute path???
     void open_dir(const char *dirname);
     void open_file(const char *filename);
+    void open_target(const char *targetname);
     void save_file();
     void move_cursor(int dx, int dy);
     void insert_char(char c);
     void insert_new_line();
 
-    string get_current_folder();
     string get_current_filename();
 
 };
