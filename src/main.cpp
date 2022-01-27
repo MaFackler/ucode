@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
         // Draw statusline
         t.set_invert_color(true);
         t.clear_line();
-        string statusline = e.buffer_name;
+        string statusline = e.get_current_filename();
         statusline.append(e.screen_columns - statusline.size(), ' ');
         t.write(statusline.c_str());
         t.set_invert_color(false);

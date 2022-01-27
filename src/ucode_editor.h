@@ -31,9 +31,7 @@ struct Editor {
     // its just an int to avoid dependency
     EditorState state;
 
-    // TODO: cwd not needed?
-    string cwd{"."};
-    string relative_dir{"."};
+    string relative_dir{""};
     index_vector<string> files;
     void open_dir(const char *dirname);
     void open_file(const char *filename);

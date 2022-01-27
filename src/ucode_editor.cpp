@@ -6,13 +6,22 @@ namespace fs = std::filesystem;
 void Editor::open_dir(const char *dirname) {
     this->state = EditorState::OPEN_DIRECTORY;
 
-    if (std::string(dirname) != ".") {
-        this->relative_dir = fs::path(this->relative_dir) / fs::path(dirname);
-    }
 
-    string abspath = this->get_current_folder();
+    std::string d = std::string(dirname);
+    if (d != ".") {
+        if (d == "..") {
+            this->relative_dir = fs::path(this->relative_dir).parent_path();
+        } else {
+            this->relative_dir = fs::path(this->relative_dir) / fs::path(d);
+        }
+    } 
+
     this->files.clear();
-    this->files.emplace_back("..");
+    string abspath = this->get_current_folder();
+    if (abspath.empty())
+        abspath = ".";
+    else
+        this->files.emplace_back("..");
     for (auto &f: std::filesystem::directory_iterator(abspath)) {
         //this->files.emplace_back(f.path().string().substr(0));
         this->files.emplace_back(f.path().filename());
@@ -225,19 +234,15 @@ TEST_CASE("Editor::insert_new_line") {
 }
 
 string Editor::get_current_folder() {
-    fs::path abspath = fs::path(this->cwd);
-    if (this->relative_dir != ".") {
-        abspath /= fs::path(this->relative_dir);
-    }
-    return abspath.string();
+    return this->relative_dir;
 }
 
 TEST_CASE("Editor::get_current_folder") {
     Editor e;
-    e.cwd = ".";
-    e.relative_dir = ".";
+    CHECK(e.get_current_folder() == "");
 
-    CHECK(e.get_current_folder() == ".");
+    e.relative_dir = "hello";
+    CHECK(e.get_current_folder() == "hello");
 }
 
 string Editor::get_current_filename() {
@@ -247,11 +252,9 @@ string Editor::get_current_filename() {
 
 TEST_CASE("Editor::get_current_filename") {
     Editor e;
-    e.cwd = ".";
-    e.relative_dir = ".";
     e.buffer_name = "hello_world.txt";
-    CHECK(e.get_current_filename() == "./hello_world.txt");
+    CHECK(e.get_current_filename() == "hello_world.txt");
 
     e.relative_dir = "subdir";
-    CHECK(e.get_current_filename() == "./subdir/hello_world.txt");
+    CHECK(e.get_current_filename() == "subdir/hello_world.txt");
 }
