@@ -1,19 +1,29 @@
 MAKEFLAGS=--no-print-directory
-all: build
-	make -C build
+BUILDDIR=build
+
+all: $(BUILDDIR)
+	make -C $<
 
 clean:
-	make clean -C build
+	make clean -C $(BUILDDIR)
+	rm -Rf $(BUILDDIR)
 
 test:
-	./build/ucode --exit
+	./$(BUILDDIR)/uc --exit
 
 tdd:
 	find src/ | entr sh -c 'clear && make && clear && make test'
 
 run:
-	./build/ucode
+	./$(BUILDDIR)/ucode
 
-build:
+$(BUILDDIR):
 	mkdir $@
 	cmake -B $@ -S .
+
+unity:
+	mkdir $(BUILDDIR)
+	cmake -B $(BUILDDIR) -S . -DCMAKE_UNITY_BUILD=ON
+
+install:
+	cp ./$(BUILDDIR)/uc /usr/local/bin/

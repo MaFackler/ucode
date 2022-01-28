@@ -11,9 +11,11 @@ using std::vector;
 using std::string;
 
 enum struct EditorState {
-    BUFFER,
+    BUFFER_NORMAL,
+    BUFFER_INSERT,
     OPEN_DIRECTORY,
 };
+
 
 struct Editor {
 
@@ -27,8 +29,6 @@ struct Editor {
     // TODO: some kind of Buffer Structure like GapBuffer?
     vector<string> lines;
 
-    // NOTE this is the enum defined in config
-    // its just an int to avoid dependency
     EditorState state;
 
     string current_folder{""};

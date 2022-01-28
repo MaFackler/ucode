@@ -27,7 +27,7 @@ void Editor::open_dir(const char *dirname) {
 }
 
 void Editor::open_file(const char *filename) {
-    this->state = EditorState::BUFFER;
+    this->state = EditorState::BUFFER_NORMAL;
     this->lines.clear();
 
     string abspath = path_join(this->current_folder, filename);
@@ -254,3 +254,4 @@ TEST_CASE("Editor::get_current_filename") {
     e.current_folder = "subdir";
     CHECK(e.get_current_filename() == "subdir/hello_world.txt");
 }
+

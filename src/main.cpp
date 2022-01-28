@@ -102,7 +102,7 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         cmd->execute(e);
     } else {
         // TODO: should this also be a command?
-        if (e.state == EditorState::BUFFER && std::isalnum((char) def.key)) {
+        if (e.state == EditorState::BUFFER_INSERT && std::isalnum((char) def.key)) {
             e.insert_char((char) def.key);
         }
     }
@@ -135,6 +135,7 @@ int main(int argc, char **argv) {
 
         term_handle_key(t, keybindings, e);
 
+
         // begin
         t.set_cursor_visibility(false);
         t.reset_cursor();
@@ -143,7 +144,7 @@ int main(int argc, char **argv) {
 
         auto draw_line = +[](int row_index) { (void) row_index; };
 
-        if (e.state == EditorState::BUFFER) {
+        if (e.state == EditorState::BUFFER_NORMAL || e.state == EditorState::BUFFER_INSERT) {
             draw_line = +[](int row_index) {
                 int endline = e.lines.size();
                 if (row_index < endline) {
@@ -177,7 +178,13 @@ int main(int argc, char **argv) {
         // Draw statusline
         t.set_invert_color(true);
         t.clear_line();
-        string statusline = e.get_current_filename();
+        string statusline;
+        switch (e.state) {
+            case EditorState::BUFFER_NORMAL: statusline += "NORMAL"; break;
+            case EditorState::BUFFER_INSERT: statusline += "INSERT"; break;
+            case EditorState::OPEN_DIRECTORY: statusline += "OPEN"; break;
+        }
+        statusline += " " + e.get_current_filename();
         statusline.append(e.screen_columns - statusline.size(), ' ');
         t.write(statusline.c_str());
         t.set_invert_color(false);

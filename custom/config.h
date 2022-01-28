@@ -13,30 +13,49 @@ struct CmdMoveSelection: ICommand {
 };
 
 
-
 void Init(state_command_map &keybindings) {
-
     auto *quit = new CmdQuit();
+    auto *goto_buffer_normal = new CmdGotoState<EditorState::BUFFER_NORMAL>();
+    auto *cursor_left = new CmdMoveCursor<-1, 0>();
+    auto *cursor_right = new CmdMoveCursor<1, 0>();
+    auto *cursor_up = new CmdMoveCursor<0, -1>();
+    auto *cursor_down = new CmdMoveCursor<0, 1>();
 
-    // BUFFER
-    command_map &state_buffer = keybindings[EditorState::BUFFER];
-    state_buffer[Key::LEFT] = new CmdMoveCursor<-1, 0>();
-    state_buffer[Key::RIGHT] = new CmdMoveCursor<1, 0>();
-    state_buffer[Key::DOWN] = new CmdMoveCursor<0, 1>();
-    state_buffer[Key::UP] = new CmdMoveCursor<0, -1>();
-    state_buffer[Key::RETURN] = new CmdInsertLine();
+    {
+        // BUFFER NORMAL
+        command_map &s = keybindings[EditorState::BUFFER_NORMAL];
+        s[Key::LEFT] = cursor_left;
+        s[Key::RIGHT] = cursor_right; 
+        s[Key::DOWN] = cursor_down;
+        s[Key::UP] = cursor_up; 
+        s[Key::h] = cursor_left;
+        s[Key::l] = cursor_right;
+        s[Key::j] = cursor_down;
+        s[Key::k] = cursor_up;
+        s[Key::RETURN] = new CmdInsertLine();
+        s[Key::i] = new CmdGotoState<EditorState::BUFFER_INSERT>();
 
-    // CTRL
-    state_buffer[Key::q + MOD_CTRL] = quit;
-    state_buffer[Key::o + MOD_CTRL] = new CmdOpenDirectory();
-    state_buffer[Key::s + MOD_CTRL] = new CmdSaveFile();
+        s[Key::q + MOD_CTRL] = quit;
+        s[Key::o + MOD_CTRL] = new CmdOpenDirectory();
+        s[Key::s + MOD_CTRL] = new CmdSaveFile();
+    }
 
-    // OPEN_DIRECTORY
-    command_map &state_open_directory = keybindings[EditorState::OPEN_DIRECTORY];
-    state_open_directory[Key::ESCAPE] = new CmdGotoState<EditorState::BUFFER>;
-    state_open_directory[Key::j] = new CmdMoveSelection<1>();
-    state_open_directory[Key::k] = new CmdMoveSelection<-1>();
-    state_open_directory[Key::RETURN] = new CmdOpenTarget();
-    state_open_directory[Key::q + MOD_CTRL] = quit;
+    {
+        // BUFFER INSERT
+        command_map &s = keybindings[EditorState::BUFFER_INSERT];
+        s[Key::ESCAPE] = goto_buffer_normal;
+
+        s[Key::q + MOD_CTRL] = quit;
+    }
+
+    {
+        // OPEN_DIRECTORY
+        command_map &s = keybindings[EditorState::OPEN_DIRECTORY];
+        s[Key::ESCAPE] = goto_buffer_normal;
+        s[Key::j] = new CmdMoveSelection<1>();
+        s[Key::k] = new CmdMoveSelection<-1>();
+        s[Key::RETURN] = new CmdOpenTarget();
+        s[Key::q + MOD_CTRL] = quit;
+    }
 
 }
