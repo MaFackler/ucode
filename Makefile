@@ -15,7 +15,7 @@ tdd:
 	find src/ | entr sh -c 'clear && make && clear && make test'
 
 run:
-	./$(BUILDDIR)/ucode
+	./$(BUILDDIR)/uc
 
 $(BUILDDIR):
 	mkdir $@

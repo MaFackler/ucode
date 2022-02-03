@@ -58,6 +58,12 @@ void Terminal::reset_cursor() {
     this->write_escape("H");
 }
 
+void Terminal::set_color(TerminalColor color) {
+    std::stringstream ss;
+    ss << static_cast<int>(color) << "m";
+    this->write_escape(ss.str().c_str());
+}
+
 void Terminal::set_invert_color(bool value) {
     if (value) {
         this->write_escape("7m");

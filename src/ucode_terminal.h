@@ -14,6 +14,19 @@ using std::string;
 #define TERM_ESCAPE_CODE '\x1b'
 #define TERM_ESCAPE(s) "\x1b[" s
 
+
+enum struct TerminalColor {
+    BLACK = 30,
+    RED,
+    GREEN,
+    YELLOW,
+    BLUE,
+    MAGENTA,
+    CYAN,
+    WHITE,
+    DEFAULT
+};
+
 struct Terminal {
 
     void init();
@@ -26,6 +39,7 @@ struct Terminal {
     void set_invert_color(bool value);
     void set_cursor_visibility(bool visible);
     void set_cursor_pos(int col, int row);
+    void set_color(TerminalColor color);
     void write(const char *s);
     void write_escape(const char *s);
     void write_new_line();

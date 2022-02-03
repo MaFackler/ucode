@@ -108,6 +108,32 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
     }
 }
 
+void draw_statusline() {
+    // Draw statusline
+    t.set_invert_color(true);
+    t.clear_line();
+    string statusline;
+    TerminalColor color = TerminalColor::DEFAULT;
+    switch (e.state) {
+        case EditorState::BUFFER_NORMAL:
+            statusline += "NORMAL";
+            break;
+        case EditorState::BUFFER_INSERT:
+            statusline += "INSERT";
+            color = TerminalColor::YELLOW;
+            break;
+        case EditorState::OPEN_DIRECTORY:
+            statusline += "OPEN";
+            break;
+    }
+    statusline += " " + e.get_current_filename();
+    statusline.append(e.screen_columns - statusline.size(), ' ');
+    t.set_color(color);
+    t.write(statusline.c_str());
+    t.set_invert_color(false);
+    t.set_color(TerminalColor::DEFAULT);
+}
+
 int main(int argc, char **argv) {
 
     LogInit();
@@ -174,20 +200,7 @@ int main(int argc, char **argv) {
             draw_line(row_index);
             t.write_new_line();
         }
-
-        // Draw statusline
-        t.set_invert_color(true);
-        t.clear_line();
-        string statusline;
-        switch (e.state) {
-            case EditorState::BUFFER_NORMAL: statusline += "NORMAL"; break;
-            case EditorState::BUFFER_INSERT: statusline += "INSERT"; break;
-            case EditorState::OPEN_DIRECTORY: statusline += "OPEN"; break;
-        }
-        statusline += " " + e.get_current_filename();
-        statusline.append(e.screen_columns - statusline.size(), ' ');
-        t.write(statusline.c_str());
-        t.set_invert_color(false);
+        draw_statusline();
 
         t.set_cursor_pos(e.col, e.row);
         t.set_cursor_visibility(cursor_visible);
