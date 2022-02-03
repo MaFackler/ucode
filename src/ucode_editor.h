@@ -27,6 +27,7 @@ struct Editor {
 
     string buffer_name;
     // TODO: some kind of Buffer Structure like GapBuffer?
+    int scroll_offset = 0;
     vector<string> lines;
 
     EditorState state;

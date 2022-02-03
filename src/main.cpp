@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
     std::atexit(exit_handler);
     auto[screen_columns, screen_rows] = t.get_window_size();
     e.screen_columns = screen_columns;
-    e.screen_rows = screen_rows;
+    e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
 
 
     state_command_map keybindings;
@@ -195,14 +195,14 @@ int main(int argc, char **argv) {
             cursor_visible = false;
         }
 
-        for (int row_index = 0; row_index < e.screen_rows - 1; ++row_index) {
+        for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
             t.clear_line();
             draw_line(row_index);
             t.write_new_line();
         }
         draw_statusline();
 
-        t.set_cursor_pos(e.col, e.row);
+        t.set_cursor_pos(e.col, e.row - e.scroll_offset);
         t.set_cursor_visibility(cursor_visible);
 
         t.flush();

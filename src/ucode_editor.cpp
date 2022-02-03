@@ -80,18 +80,25 @@ void Editor::move_cursor(int dx, int dy) {
     }
     this->row = new_row;
     this->col = new_col;;
+
+    if (dy > 0 && this->row >= this->scroll_offset + this->screen_rows) {
+        this->scroll_offset = this->row - this->screen_rows + 1;
+    } else if (dy < 0 && this->row < this->scroll_offset) {
+        this->scroll_offset = this->row;
+    }
 }
 
 TEST_CASE("Editor::move_cursor") {
-    Editor e;
 
     SUBCASE("no contests") {
+        Editor e;
         e.move_cursor(1, 2);
         CHECK(e.col == 0);
         CHECK(e.row == 0);
     }
 
     SUBCASE("with contents") {
+        Editor e;
         e.lines.push_back(string("Hello World 1"));
         e.lines.push_back(string("Hello"));
         e.lines.push_back(string(""));
@@ -107,6 +114,27 @@ TEST_CASE("Editor::move_cursor") {
         e.move_cursor(0, 1);
         CHECK(e.col == 0);
         CHECK(e.row == 2);
+    }
+
+    SUBCASE("with contents and scroll") {
+        Editor e;
+        e.screen_rows = 2;
+        e.scroll_offset = 0;
+        e.lines.emplace_back("Line 1");
+        e.lines.emplace_back("Line 2");
+        e.lines.emplace_back("Line 3");
+
+        // move down
+        e.move_cursor(0, 1);
+        CHECK(e.scroll_offset == 0);
+        e.move_cursor(0, 1);
+        CHECK(e.scroll_offset == 1);
+
+        // move up again
+        e.move_cursor(0, -1);
+        CHECK(e.scroll_offset == 1);
+        e.move_cursor(0, -1);
+        CHECK(e.scroll_offset == 0);
     }
 }
 

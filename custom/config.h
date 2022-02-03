@@ -20,6 +20,8 @@ void Init(state_command_map &keybindings) {
     auto *cursor_right = new CmdMoveCursor<1, 0>();
     auto *cursor_up = new CmdMoveCursor<0, -1>();
     auto *cursor_down = new CmdMoveCursor<0, 1>();
+    auto *cursor_page_down = new CmdMoveCursor<0, 5>();
+    auto *cursor_page_up = new CmdMoveCursor<0, -5>();
 
     {
         // BUFFER NORMAL
@@ -32,6 +34,8 @@ void Init(state_command_map &keybindings) {
         s[Key::l] = cursor_right;
         s[Key::j] = cursor_down;
         s[Key::k] = cursor_up;
+        s[Key::d + MOD_CTRL] = cursor_page_down;
+        s[Key::u + MOD_CTRL] = cursor_page_up;
         s[Key::RETURN] = new CmdInsertLine();
         s[Key::i] = new CmdGotoState<EditorState::BUFFER_INSERT>();
 
