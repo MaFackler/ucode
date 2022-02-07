@@ -68,24 +68,7 @@ void Editor::save_file() {
 
 
 void Editor::move_cursor(int dx, int dy) {
-    int new_col = 0;
-    int new_row = 0;
-    int num_lines = static_cast<int>(this->lines.size());
-    if (num_lines) {
-        new_row = std::clamp(this->row + dy, 0, num_lines - 1);
-        int num_chars = static_cast<int>(this->lines[new_row].size());
-        if (num_chars) {
-            new_col = std::clamp(this->col + dx, 0, num_chars);
-        }
-    }
-    this->row = new_row;
-    this->col = new_col;;
-
-    if (dy > 0 && this->row >= this->scroll_offset + this->screen_rows) {
-        this->scroll_offset = this->row - this->screen_rows + 1;
-    } else if (dy < 0 && this->row < this->scroll_offset) {
-        this->scroll_offset = this->row;
-    }
+    this->move_cursor_abs(this->col + dx, this->row + dy);
 }
 
 TEST_CASE("Editor::move_cursor") {
@@ -136,6 +119,47 @@ TEST_CASE("Editor::move_cursor") {
         e.move_cursor(0, -1);
         CHECK(e.scroll_offset == 0);
     }
+}
+
+void Editor::move_cursor_abs(int x, int y) {
+    int new_col = 0;
+    int new_row = 0;
+    int num_lines = static_cast<int>(this->lines.size());
+    if (num_lines) {
+        new_row = std::clamp(y, 0, num_lines - 1);
+        int num_chars = static_cast<int>(this->lines[new_row].size());
+        if (num_chars) {
+            new_col = std::clamp(x, 0, num_chars);
+        }
+    }
+    this->col = new_col;
+    int delta = new_row - this->row;
+    this->row = new_row;
+
+    if (delta > 0 && this->row >= this->scroll_offset + this->screen_rows) {
+        this->scroll_offset = this->row - this->screen_rows + 1;
+    } else if (delta < 0 && this->row < this->scroll_offset) {
+        this->scroll_offset = this->row;
+    }
+}
+
+void Editor::move_cursor_end() {
+    if (this->lines.size() > 0) {
+        int dest = this->lines[this->row].size() - 1;
+        if (this->state == EditorState::BUFFER_INSERT) {
+            dest++;
+        }
+        this->move_cursor_abs(dest, this->row);
+    }
+}
+
+TEST_CASE("Editor::move_cursor_end") {
+    Editor e;
+    e.lines.emplace_back("hello");
+    CHECK(e.row == 0);
+    CHECK(e.col == 0);
+    e.move_cursor_end();
+    CHECK(e.col == 4);
 }
 
 void Editor::insert_char(char c) {

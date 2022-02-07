@@ -102,7 +102,8 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         cmd->execute(e);
     } else {
         // TODO: should this also be a command?
-        if (e.state == EditorState::BUFFER_INSERT && std::isalnum((char) def.key)) {
+        char c = static_cast<char>(def.key);
+        if (e.state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
             e.insert_char((char) def.key);
         }
     }

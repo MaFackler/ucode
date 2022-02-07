@@ -40,9 +40,10 @@ struct Editor {
     void open_target(const char *targetname);
     void save_file();
     void move_cursor(int dx, int dy);
+    void move_cursor_abs(int dx, int dy);
+    void move_cursor_end();
     void insert_char(char c);
     void insert_new_line();
 
     string get_current_filename();
-
 };

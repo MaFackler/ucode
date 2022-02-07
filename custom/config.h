@@ -12,6 +12,26 @@ struct CmdMoveSelection: ICommand {
     };
 };
 
+template<char c>
+struct CmdInsertChar: ICommand {
+    void execute(Editor &e) {
+        e.insert_char(c);
+    }
+};
+
+struct CmdChain: ICommand {
+    std::vector<ICommand*> cmds;
+
+    void addCommand(ICommand *cmd) {
+        cmds.push_back(cmd);
+    }
+
+    void execute(Editor &e) override {
+        for (auto *cmd: this->cmds) {
+            cmd->execute(e);
+        }
+    }
+};
 
 void Init(state_command_map &keybindings) {
     auto *quit = new CmdQuit();
@@ -22,6 +42,16 @@ void Init(state_command_map &keybindings) {
     auto *cursor_down = new CmdMoveCursor<0, 1>();
     auto *cursor_page_down = new CmdMoveCursor<0, 5>();
     auto *cursor_page_up = new CmdMoveCursor<0, -5>();
+    auto *cursor_end = new CmdMoveCursorEnd();
+
+    auto *goto_insert = new CmdGotoState<EditorState::BUFFER_INSERT>(); 
+    auto *insert_new_line = new CmdInsertLine();
+
+    // VIM 'o' behaviour in NORMAL mode
+    auto *new_line_and_goto_insert = new CmdChain();
+    new_line_and_goto_insert->addCommand(goto_insert);
+    new_line_and_goto_insert->addCommand(cursor_end);
+    new_line_and_goto_insert->addCommand(insert_new_line);
 
     {
         // BUFFER NORMAL
@@ -36,8 +66,8 @@ void Init(state_command_map &keybindings) {
         s[Key::k] = cursor_up;
         s[Key::d + MOD_CTRL] = cursor_page_down;
         s[Key::u + MOD_CTRL] = cursor_page_up;
-        s[Key::RETURN] = new CmdInsertLine();
-        s[Key::i] = new CmdGotoState<EditorState::BUFFER_INSERT>();
+        s[Key::i] = goto_insert;
+        s[Key::o] = new_line_and_goto_insert;
 
         s[Key::q + MOD_CTRL] = quit;
         s[Key::o + MOD_CTRL] = new CmdOpenDirectory();
@@ -48,6 +78,7 @@ void Init(state_command_map &keybindings) {
         // BUFFER INSERT
         command_map &s = keybindings[EditorState::BUFFER_INSERT];
         s[Key::ESCAPE] = goto_buffer_normal;
+        s[Key::RETURN] = insert_new_line;
 
         s[Key::q + MOD_CTRL] = quit;
     }
