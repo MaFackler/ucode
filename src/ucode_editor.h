@@ -48,6 +48,7 @@ public:
     void goto_state(EditorState state);
     void insert_char(char c);
     void insert_new_line();
+    void remove_char();
 
     string get_current_filename();
 

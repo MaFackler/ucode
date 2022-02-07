@@ -30,9 +30,13 @@ enum struct Key {
     x,
     y,
     z,
-
+    CURLY_OPEN,
+    PIPE,
+    CURLY_CLOSE,
+    TILDE,
+    BACKSPACE,
     // NOTE: start at 128 that it dont collides with ascii table
-    LEFT = 128,
+    LEFT,
     RIGHT,
     UP,
     DOWN,

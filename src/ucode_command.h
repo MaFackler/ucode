@@ -56,3 +56,4 @@ struct CmdOpenTarget: ICommand {
 MAKE_SIMPLE_COMMAND(CmdInsertLine, insert_new_line);
 MAKE_SIMPLE_COMMAND(CmdSaveFile, save_file);
 MAKE_SIMPLE_COMMAND(CmdMoveCursorEnd, move_cursor_end);
+MAKE_SIMPLE_COMMAND(CmdRemoveChar, remove_char);

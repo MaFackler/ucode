@@ -317,6 +317,32 @@ TEST_CASE("Editor::insert_new_line") {
 
 }
 
+void Editor::remove_char() {
+    if (this->lines.size()) {
+        auto &line = this->lines[this->row];
+        if (this->col > 0) {
+            line.erase(--this->col, 1);
+        }
+    }
+}
+
+TEST_CASE("Editor::remove_char") {
+    Editor e;
+    e.goto_state(EditorState::BUFFER_INSERT);
+    e.insert_char('h');
+    e.insert_char('e');
+
+    e.remove_char();
+    CHECK(e.lines[0] == "h");
+    CHECK(e.row == 0);
+    CHECK(e.col == 1);
+
+    e.remove_char();
+    CHECK(e.lines[0] == "");
+    CHECK(e.row == 0);
+    CHECK(e.col == 0);
+}
+
 string Editor::get_current_filename() {
     return path_join(this->current_folder, this->buffer_name);
 }

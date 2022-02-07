@@ -85,6 +85,7 @@ void Init(state_command_map &keybindings) {
         command_map &s = keybindings[EditorState::BUFFER_INSERT];
         s[Key::ESCAPE] = goto_buffer_normal;
         s[Key::RETURN] = insert_new_line;
+        s[Key::BACKSPACE] = new CmdRemoveChar();
 
         s[Key::q + MOD_CTRL] = quit;
     }
