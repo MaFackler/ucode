@@ -19,18 +19,20 @@ enum struct EditorState {
 
 struct Editor {
 
+
+private:
+    EditorState _state;
+public:
     bool quit = false;
     int col = 0;
     int row = 0;
     int screen_columns = 0;
     int screen_rows = 0;
-
+    int scroll_offset = 0;
     string buffer_name;
     // TODO: some kind of Buffer Structure like GapBuffer?
-    int scroll_offset = 0;
     vector<string> lines;
 
-    EditorState state;
 
     string current_folder{""};
     index_vector<string> files;
@@ -42,8 +44,12 @@ struct Editor {
     void move_cursor(int dx, int dy);
     void move_cursor_abs(int dx, int dy);
     void move_cursor_end();
+    int get_end_col(int row);
+    void goto_state(EditorState state);
     void insert_char(char c);
     void insert_new_line();
 
     string get_current_filename();
+
+    inline EditorState state() { return this->_state; }
 };

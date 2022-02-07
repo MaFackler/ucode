@@ -4,7 +4,7 @@
 namespace fs = std::filesystem;
 
 void Editor::open_dir(const char *dirname) {
-    this->state = EditorState::OPEN_DIRECTORY;
+    this->goto_state(EditorState::OPEN_DIRECTORY);
     std::string d = std::string(dirname);
     if (d != ".") {
         if (d == "..") {
@@ -27,7 +27,7 @@ void Editor::open_dir(const char *dirname) {
 }
 
 void Editor::open_file(const char *filename) {
-    this->state = EditorState::BUFFER_NORMAL;
+    this->goto_state(EditorState::BUFFER_NORMAL);
     this->lines.clear();
 
     string abspath = path_join(this->current_folder, filename);
@@ -82,6 +82,7 @@ TEST_CASE("Editor::move_cursor") {
 
     SUBCASE("with contents") {
         Editor e;
+        e.goto_state(EditorState::BUFFER_NORMAL);
         e.lines.push_back(string("Hello World 1"));
         e.lines.push_back(string("Hello"));
         e.lines.push_back(string(""));
@@ -91,7 +92,7 @@ TEST_CASE("Editor::move_cursor") {
         CHECK(e.row == 0);
 
         e.move_cursor(0, 1);
-        CHECK(e.col == 5);
+        CHECK(e.col == 4);
         CHECK(e.row == 1);
 
         e.move_cursor(0, 1);
@@ -127,9 +128,9 @@ void Editor::move_cursor_abs(int x, int y) {
     int num_lines = static_cast<int>(this->lines.size());
     if (num_lines) {
         new_row = std::clamp(y, 0, num_lines - 1);
-        int num_chars = static_cast<int>(this->lines[new_row].size());
-        if (num_chars) {
-            new_col = std::clamp(x, 0, num_chars);
+        int end_col = this->get_end_col(new_row);
+        if (end_col) {
+            new_col = std::clamp(x, 0, end_col);
         }
     }
     this->col = new_col;
@@ -145,21 +146,43 @@ void Editor::move_cursor_abs(int x, int y) {
 
 void Editor::move_cursor_end() {
     if (this->lines.size() > 0) {
-        int dest = this->lines[this->row].size() - 1;
-        if (this->state == EditorState::BUFFER_INSERT) {
-            dest++;
-        }
+        int dest = this->get_end_col(this->row);
         this->move_cursor_abs(dest, this->row);
     }
 }
 
 TEST_CASE("Editor::move_cursor_end") {
     Editor e;
+    e.goto_state(EditorState::BUFFER_NORMAL);
     e.lines.emplace_back("hello");
     CHECK(e.row == 0);
     CHECK(e.col == 0);
     e.move_cursor_end();
     CHECK(e.col == 4);
+    e.goto_state(EditorState::BUFFER_INSERT);
+    e.move_cursor_end();
+    CHECK(e.col == 5);
+}
+
+int Editor::get_end_col(int row) {
+    int res = 0;
+    if (row < static_cast<int>(this->lines.size())) {
+        res = this->lines[row].size();
+        if (res > 0 && this->_state == EditorState::BUFFER_NORMAL) {
+            res--;
+        }
+    }
+    return res;
+}
+
+void Editor::goto_state(EditorState state) {
+    this->_state = state;
+    if (this->_state == EditorState::BUFFER_NORMAL) {
+        auto &line = this->lines[this->row];
+        if (lines.size() && this->col == static_cast<int>(line.size())) {
+            this->col = line.size() - 1;
+        }
+    }
 }
 
 void Editor::insert_char(char c) {

@@ -96,14 +96,15 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         def.key = Key(0x60 | static_cast<int>(def.key));
     }
     
-    if (keybindings[e.state].find(def) != keybindings[e.state].end()) {
-        ICommand* cmd = keybindings[e.state][def];
+    auto state = e.state();
+    if (keybindings[state].find(def) != keybindings[state].end()) {
+        ICommand* cmd = keybindings[state][def];
         cmd->key = def.key;
         cmd->execute(e);
     } else {
         // TODO: should this also be a command?
         char c = static_cast<char>(def.key);
-        if (e.state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
+        if (state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
             e.insert_char((char) def.key);
         }
     }
@@ -115,7 +116,7 @@ void draw_statusline() {
     t.clear_line();
     string statusline;
     TerminalColor color = TerminalColor::DEFAULT;
-    switch (e.state) {
+    switch (e.state()) {
         case EditorState::BUFFER_NORMAL:
             statusline += "NORMAL";
             break;
@@ -171,7 +172,8 @@ int main(int argc, char **argv) {
 
         auto draw_line = +[](int row_index) { (void) row_index; };
 
-        if (e.state == EditorState::BUFFER_NORMAL || e.state == EditorState::BUFFER_INSERT) {
+        auto state = e.state();
+        if (state == EditorState::BUFFER_NORMAL || state == EditorState::BUFFER_INSERT) {
             draw_line = +[](int row_index) {
                 int endline = e.lines.size();
                 if (row_index < endline) {
@@ -180,7 +182,7 @@ int main(int argc, char **argv) {
                     t.write("~");
                 }
             };
-        } else if (e.state == EditorState::OPEN_DIRECTORY) {
+        } else if (state == EditorState::OPEN_DIRECTORY) {
             draw_line = +[](int row_index) {
                 int endline = e.files.size();
                 if (row_index < endline) {

@@ -53,6 +53,11 @@ void Init(state_command_map &keybindings) {
     new_line_and_goto_insert->addCommand(cursor_end);
     new_line_and_goto_insert->addCommand(insert_new_line);
 
+    // VIM 'a' behaviour in NORMAL mode
+    auto *append = new CmdChain();
+    append->addCommand(goto_insert);
+    append->addCommand(cursor_right);
+
     {
         // BUFFER NORMAL
         command_map &s = keybindings[EditorState::BUFFER_NORMAL];
@@ -60,6 +65,7 @@ void Init(state_command_map &keybindings) {
         s[Key::RIGHT] = cursor_right; 
         s[Key::DOWN] = cursor_down;
         s[Key::UP] = cursor_up; 
+        s[Key::a] = append;
         s[Key::h] = cursor_left;
         s[Key::l] = cursor_right;
         s[Key::j] = cursor_down;

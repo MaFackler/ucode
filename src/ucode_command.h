@@ -30,7 +30,7 @@ struct CmdMoveCursor: ICommand {
 template <EditorState s>
 struct CmdGotoState: ICommand {
     void execute(Editor &e) {
-        e.state = s;
+        e.goto_state(s);
     };
 };
 
