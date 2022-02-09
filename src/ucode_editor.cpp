@@ -27,6 +27,7 @@ void Editor::open_dir(const char *dirname) {
 }
 
 void Editor::open_file(const char *filename) {
+    this->scroll_offset = 0;
     this->goto_state(EditorState::BUFFER_NORMAL);
     this->lines.clear();
 

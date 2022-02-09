@@ -168,41 +168,38 @@ int main(int argc, char **argv) {
         t.set_cursor_visibility(false);
         t.reset_cursor();
         bool cursor_visible = true;
-
-
-        auto draw_line = +[](int row_index) { (void) row_index; };
-
         auto state = e.state();
+
         if (state == EditorState::BUFFER_NORMAL || state == EditorState::BUFFER_INSERT) {
-            draw_line = +[](int row_index) {
-                int endline = e.lines.size();
+            int endline = e.lines.size();
+            for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
+                t.clear_line();
                 if (row_index < endline) {
                     t.write(e.lines[row_index].c_str());
                 } else {
                     t.write("~");
                 }
-            };
+                t.write_new_line();
+            }
         } else if (state == EditorState::OPEN_DIRECTORY) {
-            draw_line = +[](int row_index) {
-                int endline = e.files.size();
-                if (row_index < endline) {
-                    if (row_index ==  e.files.index())
+
+            int endline = e.files.size();
+            for (int i = 0; i < e.screen_rows; ++i) {
+                t.clear_line();
+                if (i < endline) {
+                    if (i ==  e.files.index())
                         t.set_invert_color(true);
 
-                    t.write(e.files[row_index].c_str());
+                    t.write(e.files[i].c_str());
 
-                    if (row_index ==  e.files.index())
+                    if (i ==  e.files.index())
                         t.set_invert_color(false);
                 }
-            };
+                t.write_new_line();
+            }
             cursor_visible = false;
         }
 
-        for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
-            t.clear_line();
-            draw_line(row_index);
-            t.write_new_line();
-        }
         draw_statusline();
 
         t.set_cursor_pos(e.col, e.row - e.scroll_offset);
