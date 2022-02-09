@@ -190,10 +190,18 @@ int main(int argc, char **argv) {
                     if (i ==  e.files.index())
                         t.set_invert_color(true);
 
-                    t.write(e.files[i].c_str());
+                    auto &file = e.files[i];
+                    // TODO: slow??
+                    if (std::filesystem::is_directory(file)) {
+                        t.set_color(TerminalColor::BLUE);
+                    } else {
+                        t.set_color(TerminalColor::DEFAULT);
+                    }
+                    t.write(file.filename().c_str());
 
                     if (i ==  e.files.index())
                         t.set_invert_color(false);
+
                 }
                 t.write_new_line();
             }

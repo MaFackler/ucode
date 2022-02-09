@@ -24,6 +24,7 @@ enum struct TerminalColor {
     MAGENTA,
     CYAN,
     WHITE,
+    FG_NONE,
     DEFAULT
 };
 

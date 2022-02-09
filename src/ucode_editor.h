@@ -16,9 +16,7 @@ enum struct EditorState {
     OPEN_DIRECTORY,
 };
 
-
 struct Editor {
-
 
 private:
     EditorState _state;
@@ -35,7 +33,7 @@ public:
 
 
     string current_folder{""};
-    index_vector<string> files;
+    index_vector<std::filesystem::path> files;
     // TODO: open_dir; open_file should always accept absolute path???
     void open_dir(const char *dirname);
     void open_file(const char *filename);

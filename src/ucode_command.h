@@ -43,7 +43,7 @@ struct CmdQuit: ICommand {
 struct CmdOpenTarget: ICommand {
     inline void execute(Editor &e) {
         auto &sel = e.files.get_index_item();
-        e.open_target(sel.c_str());
+        e.open_target(sel.filename().c_str());
 
         e.files.set_index(0);
     }

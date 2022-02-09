@@ -22,7 +22,7 @@ void Editor::open_dir(const char *dirname) {
         this->files.emplace_back("..");
     for (auto &f: std::filesystem::directory_iterator(abspath)) {
         //this->files.emplace_back(f.path().string().substr(0));
-        this->files.emplace_back(f.path().filename());
+        this->files.emplace_back(f.path());
     }
 }
 
