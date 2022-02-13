@@ -1,3 +1,4 @@
+//hey
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -172,10 +173,29 @@ int main(int argc, char **argv) {
 
         if (state == EditorState::BUFFER_NORMAL || state == EditorState::BUFFER_INSERT) {
             int endline = e.lines.size();
+            TokenType hl = TokenType::NONE;
             for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
                 t.clear_line();
+
                 if (row_index < endline) {
-                    t.write(e.lines[row_index].c_str());
+                    auto &tokens = e.token_lines[row_index];
+                    for (auto &token: tokens) {
+                        if (token.type != hl) {
+                            auto c = TerminalColor::DEFAULT;
+                            if (token.type == TokenType::NONE) {
+                            } else if (token.type == TokenType::NUMBER) {
+                                c = TerminalColor::RED;
+                            } else if (token.type == TokenType::KEYWORD) {
+                                c = TerminalColor::YELLOW;
+                            }
+                            t.set_color(c);
+                            hl = token.type;
+                        }
+                        if (token.chars.size()) {
+                            t.write(token.chars.c_str());
+                        }
+                    }
+                    //t.write(e.lines[row_index].c_str());
                 } else {
                     t.write("~");
                 }

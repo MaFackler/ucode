@@ -30,13 +30,16 @@ void Editor::open_file(const char *filename) {
     this->scroll_offset = 0;
     this->goto_state(EditorState::BUFFER_NORMAL);
     this->lines.clear();
+    this->token_lines.clear();
 
     string abspath = path_join(this->current_folder, filename);
     std::ifstream fp(abspath);
     if (fp.is_open()) {
         string line;
         while (std::getline(fp, line)) {
-            this->lines.push_back(line);
+            auto &l = this->lines.emplace_back(line);
+            auto &tokens = this->token_lines.emplace_back();
+            Lexer::lex(l.c_str(), tokens);
         }
         this->buffer_name = string(filename);
     }
@@ -189,9 +192,12 @@ void Editor::goto_state(EditorState state) {
 void Editor::insert_char(char c) {
     if (this->lines.size() == 0) {
         this->lines.emplace_back();
+        this->token_lines.emplace_back();
     }
     auto &s = this->lines[this->row];
     s.insert(s.begin() + this->col++, c);
+    auto &t = this->token_lines[this->row];
+    Lexer::lex(s.c_str(), t);
 }
 
 TEST_CASE("Editor::insert_char") {
@@ -220,7 +226,7 @@ void Editor::insert_new_line() {
         string &line = this->lines[this->row];
 
         string to_insert("");
-        auto pos = this->lines.begin() + this->row;
+        int pos = this->row;
         if (this->col == 0) {
             // Start of line
             //this->lines.emplace(this->lines.begin() + this->row);
@@ -234,11 +240,18 @@ void Editor::insert_new_line() {
             this->lines[this->row] = line.substr(0, this->col);
             pos++;
         }
-        this->lines.insert(pos, to_insert);
+        this->lines.insert(this->lines.begin() + pos, to_insert);
+        this->token_lines.emplace(this->token_lines.begin() + pos,
+                                  vector<Token>());
+        Lexer::lex(this->lines[pos].c_str(), this->token_lines[pos]);
+        if (pos > 0) {
+            Lexer::lex(this->lines[pos - 1].c_str(), this->token_lines[pos - 1]);
+        }
         this->row++;
         this->col = 0;
     } else {
         this->lines.emplace_back();
+        this->token_lines.emplace_back();
     }
 }
 

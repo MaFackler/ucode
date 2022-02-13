@@ -87,8 +87,16 @@ void Terminal::set_cursor_pos(int col, int row) {
     this->write_escape(ss.str().c_str());
 }
 
+void Terminal::write(char c) {
+    this->buffer += c;
+}
+
 void Terminal::write(const char *s) {
     this->buffer += s;
+}
+
+void Terminal::write(std::string_view &sv) {
+    this->buffer += sv;
 }
 
 void Terminal::write_escape(const char *s) {

@@ -41,7 +41,9 @@ struct Terminal {
     void set_cursor_visibility(bool visible);
     void set_cursor_pos(int col, int row);
     void set_color(TerminalColor color);
+    void write(char c);
     void write(const char *s);
+    void write(std::string_view &sv);
     void write_escape(const char *s);
     void write_new_line();
 

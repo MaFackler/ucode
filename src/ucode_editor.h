@@ -6,6 +6,7 @@
 #include <filesystem>
 
 #include "ucode_utils.h"
+#include "ucode_lexer.h"
 
 using std::vector;
 using std::string;
@@ -15,6 +16,7 @@ enum struct EditorState {
     BUFFER_INSERT,
     OPEN_DIRECTORY,
 };
+
 
 struct Editor {
 
@@ -30,6 +32,7 @@ public:
     string buffer_name;
     // TODO: some kind of Buffer Structure like GapBuffer?
     vector<string> lines;
+    vector<vector<Token>> token_lines;
 
 
     string current_folder{""};
