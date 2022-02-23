@@ -7,23 +7,28 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
     if (!contents) {
         return;
     }
+    auto set_token_type = [](vector<const char *> &v, const char *a, size_t n, TokenType to_set, TokenType *value) {
+        if (*value != TokenType::NONE) {
+            return;
+        }
+        for (const char *e: v) {
+            if (n == strlen(e) && std::strncmp(a, e, n) == 0) {
+                *value = to_set;
+            }
+        }
+    };
     auto add_token = [](vector<Token> &tokens, TokenType type, const char *start, const char *end) -> const char* {
         auto &t = tokens.emplace_back();
         t.type = type;
         t.chars = string_view(start, end - start);
         return end;
     };
-    auto add_word_or_number = [this, add_token](vector<Token> &tokens, bool in_word, bool in_number, const char *start, const char *end) -> const char* {
+    auto add_word_or_number = [this, set_token_type, add_token](vector<Token> &tokens, bool in_word, bool in_number, const char *start, const char *end) -> const char* {
         auto res = end; 
         if (in_word) {
-            size_t n = end - start;
-            TokenType type = TokenType::WORD;
-            for (const char *kw: this->keywords) {
-                if (n == strlen(kw) && std::strncmp(start, kw, n) == 0) {
-                    type = TokenType::KEYWORD;
-                    break;
-                }
-            }
+            TokenType type = TokenType::NONE;
+            set_token_type(this->keywords, start, end - start, TokenType::KEYWORD, &type);
+            set_token_type(this->types, start, end - start, TokenType::TYPE, &type);
             start = add_token(tokens, type, start, end);
         }
         if (in_number) {
@@ -138,12 +143,20 @@ TEST_CASE("FOO") {
         CHECK(tokens[5].chars == ")");
         CHECK(tokens[6].chars == " ");
     }
-    SUBCASE("Statement") {
+    SUBCASE("Keywords") {
         std::vector<Token> tokens;
         l.keywords.emplace_back("if");
         l.lex("if (1)", tokens);
         CHECK(tokens[0].type == TokenType::KEYWORD);
         CHECK(tokens.size() == 5);
+    }
+    
+    SUBCASE("types") {
+        std::vector<Token> tokens;
+        l.types.emplace_back("int");
+        l.lex("int hey = 0;", tokens);
+        CHECK(tokens[0].type == TokenType::TYPE);
+        CHECK(tokens.size() == 8);
     }
 
 

@@ -14,6 +14,7 @@ enum struct TokenType {
     WHITESPACE,
     NUMBER,
     KEYWORD,
+    TYPE,
 };
 
 struct Token {
@@ -27,5 +28,6 @@ struct Token {
 struct Lexer {
 
     vector<const char*> keywords;  //TODO: this is slow????
+    vector<const char*> types;
     void lex(const char *contents, vector<Token> &tokens);
 };

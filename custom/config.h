@@ -38,6 +38,16 @@ void Keywords(vector<const char*> &keywords) {
     keywords.emplace_back("while");
     keywords.emplace_back("for");
     keywords.emplace_back("else");
+    keywords.emplace_back("return");
+    keywords.emplace_back("new");
+}
+
+void Types(vector<const char*> &types) {
+    types.emplace_back("auto");
+    types.emplace_back("int");
+    types.emplace_back("void");
+    types.emplace_back("float");
+    types.emplace_back("char");
 }
 
 void Init(state_command_map &keybindings) {

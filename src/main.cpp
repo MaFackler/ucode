@@ -155,6 +155,7 @@ int main(int argc, char **argv) {
     e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
     state_command_map keybindings;
     Keywords(e.lexer.keywords);
+    Types(e.lexer.types);
     Init(keybindings);
     
     if (argc == 2) {
@@ -184,8 +185,10 @@ int main(int argc, char **argv) {
                             auto c = TerminalColor::DEFAULT;
                             if (token.type == TokenType::NONE) {
                             } else if (token.type == TokenType::NUMBER) {
-                                c = TerminalColor::RED;
+                                c = TerminalColor::MAGENTA;
                             } else if (token.type == TokenType::KEYWORD) {
+                                c = TerminalColor::RED;
+                            } else if (token.type == TokenType::TYPE) {
                                 c = TerminalColor::YELLOW;
                             }
                             t.set_color(c);
