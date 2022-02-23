@@ -13,10 +13,18 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
         t.chars = string_view(start, end - start);
         return end;
     };
-    auto add_word_or_number = [add_token](vector<Token> &tokens, bool in_word, bool in_number, const char *start, const char *end) -> const char* {
+    auto add_word_or_number = [this, add_token](vector<Token> &tokens, bool in_word, bool in_number, const char *start, const char *end) -> const char* {
         auto res = end; 
         if (in_word) {
-            start = add_token(tokens, TokenType::WORD, start, end);
+            size_t n = end - start;
+            TokenType type = TokenType::WORD;
+            for (const char *kw: this->keywords) {
+                if (n == strlen(kw) && std::strncmp(start, kw, n) == 0) {
+                    type = TokenType::KEYWORD;
+                    break;
+                }
+            }
+            start = add_token(tokens, type, start, end);
         }
         if (in_number) {
             start = add_token(tokens, TokenType::NUMBER, start, end);
@@ -85,17 +93,18 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
 }
 
 TEST_CASE("FOO") {
-    
+
+    Lexer l; 
     SUBCASE("single word") {
         std::vector<Token> tokens;
-        Lexer::lex("Hello", tokens);
+        l.lex("Hello", tokens);
         CHECK(tokens.size() == 1);
         CHECK(tokens[0].chars == "Hello");
     }
 
     SUBCASE("words") {
         std::vector<Token> tokens;
-        Lexer::lex("Hello world", tokens);
+        l.lex("Hello world", tokens);
         CHECK(tokens.size() == 3);
         CHECK(tokens[0].chars == "Hello");
         CHECK(tokens[1].chars == " ");
@@ -104,7 +113,7 @@ TEST_CASE("FOO") {
 
     SUBCASE("Numbers") {
         std::vector<Token> tokens;
-        Lexer::lex("1 1.0 1.0f abc1", tokens);
+        l.lex("1 1.0 1.0f abc1", tokens);
         CHECK(tokens.size() == 7);
         CHECK(tokens[0].chars == "1");
         CHECK(tokens[1].chars == " ");
@@ -119,7 +128,7 @@ TEST_CASE("FOO") {
 
     SUBCASE("Function") {
         std::vector<Token> tokens;
-        Lexer::lex("void hello(1) {", tokens);
+        l.lex("void hello(1) {", tokens);
         //CHECK(tokens.size() == 8);
         CHECK(tokens[0].chars == "void");
         CHECK(tokens[1].chars == " ");
@@ -131,9 +140,12 @@ TEST_CASE("FOO") {
     }
     SUBCASE("Statement") {
         std::vector<Token> tokens;
-        Lexer::lex("int hey = 1;", tokens);
-        CHECK(tokens.size() == 8);
+        l.keywords.emplace_back("if");
+        l.lex("if (1)", tokens);
+        CHECK(tokens[0].type == TokenType::KEYWORD);
+        CHECK(tokens.size() == 5);
     }
+
 
     //SUBCASE("if keyword") {
     //    l.lex("if ifend #if if");

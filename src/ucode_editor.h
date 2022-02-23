@@ -34,6 +34,7 @@ public:
     vector<string> lines;
     vector<vector<Token>> token_lines;
 
+    Lexer lexer;
 
     string current_folder{""};
     index_vector<std::filesystem::path> files;

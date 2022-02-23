@@ -39,7 +39,7 @@ void Editor::open_file(const char *filename) {
         while (std::getline(fp, line)) {
             auto &l = this->lines.emplace_back(line);
             auto &tokens = this->token_lines.emplace_back();
-            Lexer::lex(l.c_str(), tokens);
+            this->lexer.lex(l.c_str(), tokens);
         }
         this->buffer_name = string(filename);
     }
@@ -197,7 +197,7 @@ void Editor::insert_char(char c) {
     auto &s = this->lines[this->row];
     s.insert(s.begin() + this->col++, c);
     auto &t = this->token_lines[this->row];
-    Lexer::lex(s.c_str(), t);
+    this->lexer.lex(s.c_str(), t);
 }
 
 TEST_CASE("Editor::insert_char") {
@@ -243,9 +243,9 @@ void Editor::insert_new_line() {
         this->lines.insert(this->lines.begin() + pos, to_insert);
         this->token_lines.emplace(this->token_lines.begin() + pos,
                                   vector<Token>());
-        Lexer::lex(this->lines[pos].c_str(), this->token_lines[pos]);
+        this->lexer.lex(this->lines[pos].c_str(), this->token_lines[pos]);
         if (pos > 0) {
-            Lexer::lex(this->lines[pos - 1].c_str(), this->token_lines[pos - 1]);
+            this->lexer.lex(this->lines[pos - 1].c_str(), this->token_lines[pos - 1]);
         }
         this->row++;
         this->col = 0;

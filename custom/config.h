@@ -33,6 +33,13 @@ struct CmdChain: ICommand {
     }
 };
 
+void Keywords(vector<const char*> &keywords) {
+    keywords.emplace_back("if");
+    keywords.emplace_back("while");
+    keywords.emplace_back("for");
+    keywords.emplace_back("else");
+}
+
 void Init(state_command_map &keybindings) {
     auto *quit = new CmdQuit();
     auto *goto_buffer_normal = new CmdGotoState<EditorState::BUFFER_NORMAL>();

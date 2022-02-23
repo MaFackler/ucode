@@ -147,14 +147,14 @@ int main(int argc, char **argv) {
         return should_close;
     }
 #endif
+
     t.init();
     std::atexit(exit_handler);
     auto[screen_columns, screen_rows] = t.get_window_size();
     e.screen_columns = screen_columns;
     e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
-
-
     state_command_map keybindings;
+    Keywords(e.lexer.keywords);
     Init(keybindings);
     
     if (argc == 2) {

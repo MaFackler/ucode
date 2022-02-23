@@ -25,5 +25,7 @@ struct Token {
 
 // TODO: this is not a lexer? Rename?
 struct Lexer {
-    static void lex(const char *contents, vector<Token> &tokens);
+
+    vector<const char*> keywords;  //TODO: this is slow????
+    void lex(const char *contents, vector<Token> &tokens);
 };
