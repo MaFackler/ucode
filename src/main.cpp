@@ -6,10 +6,7 @@
 #include <map>
 #include <functional>
 
-//#define DOCTEST_CONFIG_DISABLE
-#define DOCTEST_CONFIG_IMPLEMENT
-#include <doctest.h>
-
+#include "ucode_test.h"
 #include "ucode_log.h"
 #include "ucode_input.h"
 #include "ucode_terminal.h"
@@ -38,18 +35,6 @@ void exit_handler() {
     t.shutdown();
 }
 
-#ifndef DOCTEST_CONFIG_DISABLE
-int handle_doctest(int argc, char **argv) {
-    doctest::Context ctx;
-    //ctx.setOption("--no-run", true);
-    ctx.applyCommandLine(argc, argv);
-    int res = ctx.run();
-    if (ctx.shouldExit())
-        return 1;
-    
-    return res;
-}
-#endif
 
 void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
     char c = t.read_char();
@@ -141,13 +126,8 @@ int main(int argc, char **argv) {
 
     LogInit();
     Debug << "Logging initialized";
-#ifndef DOCTEST_CONFIG_DISABLE
-    int should_close = handle_doctest(argc, argv);
-    if (should_close) {
-        return should_close;
-    }
-#endif
 
+    UCODE_TEST;
     t.init();
     std::atexit(exit_handler);
     auto[screen_columns, screen_rows] = t.get_window_size();

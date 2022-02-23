@@ -1,12 +1,16 @@
 MAKEFLAGS=--no-print-directory
 BUILDDIR=build
+RELEASEDIR=release
 
 all: $(BUILDDIR)
 	make -C $<
 
+.PHONY: clean
 clean:
-	make clean -C $(BUILDDIR)
+	if [ -d $(BUILDDIR) ]; then make clean -C $(BUILDDIR); fi
+	if [ -d $(RELEASEDIR) ]; then make clean -C $(RELEASEDIR); fi
 	rm -Rf $(BUILDDIR)
+	rm -Rf $(RELEASEDIR)
 
 test:
 	./$(BUILDDIR)/uc --exit
@@ -19,11 +23,18 @@ run:
 
 $(BUILDDIR):
 	mkdir $@
-	cmake -B $@ -S .
+	cmake -DCMAKE_BUILD_TYPE=Debug -B $@ -S .
 
 unity:
 	mkdir $(BUILDDIR)
 	cmake -B $(BUILDDIR) -S . -DCMAKE_UNITY_BUILD=ON
 
-install:
-	cp ./$(BUILDDIR)/uc /usr/local/bin/
+$(RELEASEDIR):
+	mkdir $@
+	cmake -DCMAKE_BUILD_TYPE=Release -B $@ -S .
+
+$(RELEASEDIR)/uc: $(RELEASEDIR)
+	make -C $<
+
+install: $(RELEASEDIR)/uc
+	cp ./$(RELEASEDIR)/uc /usr/local/bin/
