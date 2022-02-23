@@ -40,6 +40,7 @@ void Keywords(vector<const char*> &keywords) {
     keywords.emplace_back("else");
     keywords.emplace_back("return");
     keywords.emplace_back("new");
+    keywords.emplace_back("const");
 }
 
 void Types(vector<const char*> &types) {

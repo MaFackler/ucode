@@ -67,6 +67,7 @@ void Editor::save_file() {
             out.write("\n", 1);
         }
     }
+    out.write("\n", 1);
     out.close();
 }
 
