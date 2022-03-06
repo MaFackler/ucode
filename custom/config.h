@@ -49,6 +49,8 @@ void Types(vector<const char*> &types) {
     types.emplace_back("void");
     types.emplace_back("float");
     types.emplace_back("char");
+    types.emplace_back("struct");
+    types.emplace_back("class");
 }
 
 void Init(state_command_map &keybindings) {
