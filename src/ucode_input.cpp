@@ -4,28 +4,28 @@
 
 TEST_CASE("operator overloading for convenient config") {
     SUBCASE("Key + CTRL") {
-        auto a = Key::j + MOD_CTRL;
+        auto a = Key::j + KEY_MOD_CTRL;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == true);
         CHECK(a.shift.value == false);
     }
 
     SUBCASE("Key + SHIFT") {
-        auto a = Key::j + MOD_SHIFT;
+        auto a = Key::j + KEY_MOD_SHIFT;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == false);
         CHECK(a.shift.value == true);
     }
 
     SUBCASE("Key + SHIFT + CTRL") {
-        auto a = Key::j + MOD_SHIFT + MOD_CTRL;
+        auto a = Key::j + KEY_MOD_SHIFT + KEY_MOD_CTRL;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == true);
         CHECK(a.shift.value == true);
     }
 
     SUBCASE("Key + CTRL + SHIFT") {
-        auto a = Key::j + MOD_CTRL + MOD_SHIFT;
+        auto a = Key::j + KEY_MOD_CTRL + KEY_MOD_SHIFT;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == true);
         CHECK(a.shift.value == true);

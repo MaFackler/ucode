@@ -1,4 +1,3 @@
-//hey
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -9,11 +8,16 @@
 #include "ucode_test.h"
 #include "ucode_log.h"
 #include "ucode_input.h"
-#include "ucode_terminal.h"
+#include "ucode_renderer.h"
 #include "ucode_editor.h"
 #include "ucode_command.h"
 
 #include "../custom/config.h"
+
+#include "ucode_input.cpp"
+#include "ucode_renderer.cpp"
+#include "ucode_editor.cpp"
+#include "ucode_lexer.cpp"
 
 
 
@@ -23,19 +27,54 @@ using std::string;
 using std::map;
 
 
-static Terminal t;
+static Renderer r;
 static Editor e;
 
 
 
 void exit_handler() {
-    t.reset_cursor();
-    t.clear_screen();
-    t.flush();
-    t.shutdown();
+    //r.reset_cursor();
+    r.clear_screen();
+    r.flush();
+    r.shutdown();
 }
 
 
+void handle_key(state_command_map &keybindings, Editor &e, KeyDef &def) {
+    //KeyDef def;
+    //if (c && def.key == Key::NONE) {
+    //    switch (c) {
+    //        case 0x0D: def.key = Key::RETURN; break;
+    //        case 0x1B: def.key = Key::ESCAPE; break;
+    //        default: def.key = (Key) c;
+    //    }
+    //}
+
+    if (def.key != Key::NONE && def.key < Key::SPACE) {
+        // VT 100 ctrl handling
+        // NOTE: Assume all key lower than space are ctrl keys
+        // except Ascii 0
+        def.ctrl.value = true;
+        def.key = Key(0x60 | static_cast<int>(def.key));
+    }
+    
+    printf("key to parse %c\n", def.key);
+    auto state = e.state();
+    if (keybindings[state].find(def) != keybindings[state].end()) {
+        printf("got one\n");
+        ICommand* cmd = keybindings[state][def];
+        cmd->key = def.key;
+        cmd->execute(e);
+    } else {
+        // TODO: should this also be a command?
+        char c = static_cast<char>(def.key);
+        if (state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
+            e.insert_char((char) def.key);
+        }
+    }
+}
+
+#ifdef __unix__
 void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
     char c = t.read_char();
 
@@ -83,6 +122,7 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
     }
     
     auto state = e.state();
+    print("key %c\n", c);
     if (keybindings[state].find(def) != keybindings[state].end()) {
         ICommand* cmd = keybindings[state][def];
         cmd->key = def.key;
@@ -95,12 +135,15 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         }
     }
 }
+#endif
 
 void draw_statusline() {
     // Draw statusline
-    t.set_invert_color(true);
-    t.clear_line();
+    //r.set_invert_color(true);
+    r.clear_line();
     string statusline;
+#if 0
+#TODO color
     TerminalColor color = TerminalColor::DEFAULT;
     switch (e.state()) {
         case EditorState::BUFFER_NORMAL:
@@ -114,12 +157,13 @@ void draw_statusline() {
             statusline += "OPEN";
             break;
     }
+    t.set_color(color);
+#endif
     statusline += " " + e.get_current_filename();
     statusline.append(e.screen_columns - statusline.size(), ' ');
-    t.set_color(color);
-    t.write(statusline.c_str());
-    t.set_invert_color(false);
-    t.set_color(TerminalColor::DEFAULT);
+    r.write(statusline.c_str());
+    //r.set_invert_color(false);
+    // r.set_color(TerminalColor::DEFAULT);
 }
 
 int main(int argc, char **argv) {
@@ -128,11 +172,13 @@ int main(int argc, char **argv) {
     Debug << "Logging initialized";
 
     UCODE_TEST;
-    t.init();
+    r.init();
     std::atexit(exit_handler);
-    auto[screen_columns, screen_rows] = t.get_window_size();
+    auto[screen_columns, screen_rows] = r.get_window_size();
     e.screen_columns = screen_columns;
     e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
+    e.screen_rows = 40;
+    e.screen_columns = 20;
     state_command_map keybindings;
     Keywords(e.lexer.keywords);
     Types(e.lexer.types);
@@ -141,82 +187,93 @@ int main(int argc, char **argv) {
     if (argc == 2) {
         e.open_file(argv[1]);
     }
-    while (!e.quit) {
+    while (!e.quit && !r.close) {
 
-        term_handle_key(t, keybindings, e);
+        //term_handle_key(t, keybindings, e);
+        r.handle_input();
 
+        for (KeyDef &def: r.keys) {
+            handle_key(keybindings, e, def);
+        }
 
         // begin
-        t.set_cursor_visibility(false);
-        t.reset_cursor();
+        r.begin();
+        r.set_color(RenderColor::GREEN);
+
+        //r.set_cursor_visibility(false);
+        //r.reset_cursor();
         bool cursor_visible = true;
         auto state = e.state();
 
         if (state == EditorState::BUFFER_NORMAL || state == EditorState::BUFFER_INSERT) {
             int endline = e.lines.size();
-            TokenType hl = TokenType::NONE;
+            enum TokenType hl = TokenType::NONE;
             for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
-                t.clear_line();
+                r.clear_line();
 
                 if (row_index < endline) {
                     auto &tokens = e.token_lines[row_index];
                     for (auto &token: tokens) {
                         if (token.type != hl) {
-                            auto c = TerminalColor::DEFAULT;
+                            auto c = RenderColor::BLACK;
                             if (token.type == TokenType::NONE) {
                             } else if (token.type == TokenType::NUMBER) {
-                                c = TerminalColor::MAGENTA;
+                                c = RenderColor::RED;
                             } else if (token.type == TokenType::KEYWORD) {
-                                c = TerminalColor::RED;
+                                c = RenderColor::GREEN;
                             } else if (token.type == TokenType::TYPE) {
-                                c = TerminalColor::YELLOW;
+                                c = RenderColor::BLUE;
                             }
-                            t.set_color(c);
+                            r.set_color(c);
                             hl = token.type;
                         }
                         if (token.chars.size()) {
-                            t.write(token.chars.c_str());
+                            r.write(token.chars.c_str());
                         }
                     }
                     //t.write(e.lines[row_index].c_str());
                 } else {
-                    t.write("~");
+                    r.write("~");
                 }
-                t.write_new_line();
+                r.write_new_line();
             }
         } else if (state == EditorState::OPEN_DIRECTORY) {
 
             int endline = e.files.size();
             for (int i = 0; i < e.screen_rows; ++i) {
-                t.clear_line();
+                r.clear_line();
                 if (i < endline) {
-                    if (i ==  e.files.index())
-                        t.set_invert_color(true);
+                    if (i ==  e.files.index()) {
+                        //r.set_invert_color(true);
+                    }
+                        
 
                     auto &file = e.files[i];
-                    // TODO: slow??
                     if (std::filesystem::is_directory(file)) {
-                        t.set_color(TerminalColor::BLUE);
+                        r.set_color(RenderColor::RED);
                     } else {
-                        t.set_color(TerminalColor::DEFAULT);
+                        r.set_color(RenderColor::GREEN);
                     }
-                    t.write(file.filename().c_str());
+                    r.write(file.filename().string().c_str());
 
-                    if (i ==  e.files.index())
-                        t.set_invert_color(false);
+                    if (i ==  e.files.index()) {
+                        //r.set_invert_color(false);
+                    }
 
                 }
-                t.write_new_line();
+                r.write_new_line();
             }
             cursor_visible = false;
         }
 
-        draw_statusline();
+        //draw_statusline();
 
-        t.set_cursor_pos(e.col, e.row - e.scroll_offset);
-        t.set_cursor_visibility(cursor_visible);
+        //r.set_cursor_pos(e.col, e.row - e.scroll_offset);
+        //r.set_cursor_visibility(cursor_visible);
 
-        t.flush();
+        r.end();
+        r.flush();
+        Sleep(16);
     }
 
     return 0;

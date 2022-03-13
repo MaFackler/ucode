@@ -8,9 +8,9 @@ void Editor::open_dir(const char *dirname) {
     std::string d = std::string(dirname);
     if (d != ".") {
         if (d == "..") {
-            this->current_folder = fs::path(this->current_folder).parent_path();
+            this->current_folder = fs::path(this->current_folder).parent_path().string();
         } else {
-            this->current_folder = fs::path(this->current_folder) / fs::path(d);
+            this->current_folder = (fs::path(this->current_folder) / fs::path(d)).string();
         }
     } 
 
@@ -368,6 +368,10 @@ TEST_CASE("Editor::get_current_filename") {
     CHECK(e.get_current_filename() == "hello_world.txt");
 
     e.current_folder = "subdir";
+#ifdef __unix__
     CHECK(e.get_current_filename() == "subdir/hello_world.txt");
+#else
+    CHECK(e.get_current_filename() == "subdir\\hello_world.txt");
+#endif
 }
 

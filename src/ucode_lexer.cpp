@@ -7,7 +7,7 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
     if (!contents) {
         return;
     }
-    auto set_token_type = [](vector<const char *> &v, const char *a, size_t n, TokenType to_set, TokenType *value) {
+    auto set_token_type = [](vector<const char *> &v, const char *a, size_t n, enum TokenType to_set, enum TokenType *value) {
         if (*value != TokenType::NONE) {
             return;
         }
@@ -17,7 +17,7 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
             }
         }
     };
-    auto add_token = [](vector<Token> &tokens, TokenType type, const char *start, const char *end) -> const char* {
+    auto add_token = [](vector<Token> &tokens, enum TokenType type, const char *start, const char *end) -> const char* {
         auto &t = tokens.emplace_back();
         t.type = type;
         t.chars = string_view(start, end - start);
@@ -26,7 +26,7 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
     auto add_word_or_number = [this, set_token_type, add_token](vector<Token> &tokens, bool in_word, bool in_number, const char *start, const char *end) -> const char* {
         auto res = end; 
         if (in_word) {
-            TokenType type = TokenType::NONE;
+            enum TokenType type = TokenType::NONE;
             set_token_type(this->keywords, start, end - start, TokenType::KEYWORD, &type);
             set_token_type(this->types, start, end - start, TokenType::TYPE, &type);
             start = add_token(tokens, type, start, end);
@@ -62,15 +62,81 @@ void Lexer::lex(const char *contents, vector<Token> &tokens) {
                 if (in_number) {
                 }
                 break;
-            case '0' ... '9':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
                 if (!in_word) {
                     in_number = true;
                 }
                 break;
-            case ':' ... '@':
+            case ':':
+            case ';':
+            case '<':
+            case '=':
+            case '>':
+            case '?':
+            case '@':
                 start = add_token(tokens, TokenType::NONE, start, contents);
                 break;
-            case 'A' ... 'z':
+            case 'A':
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'E':
+            case 'F':
+            case 'G':
+            case 'H':
+            case 'I':
+            case 'J':
+            case 'K':
+            case 'L':
+            case 'M':
+            case 'N':
+            case 'O':
+            case 'P':
+            case 'Q':
+            case 'R':
+            case 'S':
+            case 'T':
+            case 'U':
+            case 'V':
+            case 'W':
+            case 'X':
+            case 'Y':
+            case 'Z':
+            case 'a':
+            case 'b':
+            case 'c':
+            case 'd':
+            case 'e':
+            case 'f':
+            case 'g':
+            case 'h':
+            case 'i':
+            case 'j':
+            case 'k':
+            case 'l':
+            case 'm':
+            case 'n':
+            case 'o':
+            case 'p':
+            case 'q':
+            case 'r':
+            case 's':
+            case 't':
+            case 'u':
+            case 'v':
+            case 'w':
+            case 'x':
+            case 'y':
+            case 'z':
                 if (!in_number) {
                     in_word = true;
                 }

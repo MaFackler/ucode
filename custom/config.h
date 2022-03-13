@@ -90,14 +90,15 @@ void Init(state_command_map &keybindings) {
         s[Key::l] = cursor_right;
         s[Key::j] = cursor_down;
         s[Key::k] = cursor_up;
-        s[Key::d + MOD_CTRL] = cursor_page_down;
-        s[Key::u + MOD_CTRL] = cursor_page_up;
+        s[Key::d + KEY_MOD_CTRL] = cursor_page_down;
+        s[Key::u + KEY_MOD_CTRL] = cursor_page_up;
         s[Key::i] = goto_insert;
         s[Key::o] = new_line_and_goto_insert;
 
-        s[Key::q + MOD_CTRL] = quit;
-        s[Key::o + MOD_CTRL] = new CmdOpenDirectory();
-        s[Key::s + MOD_CTRL] = new CmdSaveFile();
+        s[Key::q + KEY_MOD_CTRL] = quit;
+        s[Key::o + KEY_MOD_CTRL] = new CmdOpenDirectory();
+        //s[Key::o] = new CmdOpenDirectory();
+        s[Key::s + KEY_MOD_CTRL] = new CmdSaveFile();
     }
 
     {
@@ -107,7 +108,7 @@ void Init(state_command_map &keybindings) {
         s[Key::RETURN] = insert_new_line;
         s[Key::BACKSPACE] = new CmdRemoveChar();
 
-        s[Key::q + MOD_CTRL] = quit;
+        s[Key::q + KEY_MOD_CTRL] = quit;
     }
 
     {
@@ -117,7 +118,7 @@ void Init(state_command_map &keybindings) {
         s[Key::j] = new CmdMoveSelection<1>();
         s[Key::k] = new CmdMoveSelection<-1>();
         s[Key::RETURN] = new CmdOpenTarget();
-        s[Key::q + MOD_CTRL] = quit;
+        s[Key::q + KEY_MOD_CTRL] = quit;
     }
 
 }
