@@ -7,6 +7,7 @@
 
 #include "ucode_utils.h"
 #include "ucode_lexer.h"
+#include "ucode_file_chooser.h"
 
 using std::vector;
 using std::string;
@@ -35,6 +36,8 @@ public:
     vector<vector<Token>> token_lines;
 
     Lexer lexer;
+
+    FileChooser chooser;
 
     string current_folder{""};
     index_vector<std::filesystem::path> files;

@@ -92,6 +92,9 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         char c = static_cast<char>(def.key);
         if (state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
             e.insert_char((char) def.key);
+        } else if (state == EditorState::OPEN_DIRECTORY && c >= ' ' && c <= '~') {
+            e.chooser.filter_string += c;
+            e.chooser.filter();
         }
     }
 }
@@ -136,7 +139,7 @@ int main(int argc, char **argv) {
     state_command_map keybindings;
     Keywords(e.lexer.keywords);
     Types(e.lexer.types);
-    Init(keybindings);
+    Init(e, keybindings);
     
     if (argc == 2) {
         e.open_file(argv[1]);
@@ -186,29 +189,27 @@ int main(int argc, char **argv) {
             }
         } else if (state == EditorState::OPEN_DIRECTORY) {
 
-            int endline = e.files.size();
-            for (int i = 0; i < e.screen_rows; ++i) {
+            cursor_visible = false;
+            t.clear_line();
+            t.write(e.chooser.filter_string.c_str());
+            t.write_new_line();
+
+            int s = e.chooser.filtered.size();
+            for (int i = 1; i < e.screen_rows; ++i) {
+                int fetch_index = i - 1;
+                if (fetch_index == 0) {
+                    t.set_invert_color(true);
+                }
                 t.clear_line();
-                if (i < endline) {
-                    if (i ==  e.files.index())
-                        t.set_invert_color(true);
-
-                    auto &file = e.files[i];
-                    // TODO: slow??
-                    if (std::filesystem::is_directory(file)) {
-                        t.set_color(TerminalColor::BLUE);
-                    } else {
-                        t.set_color(TerminalColor::DEFAULT);
-                    }
-                    t.write(file.filename().c_str());
-
-                    if (i ==  e.files.index())
-                        t.set_invert_color(false);
-
+                if (fetch_index < s) {
+                    int index = e.chooser.filtered[fetch_index];
+                    t.write(e.chooser.files[index].c_str());
                 }
                 t.write_new_line();
+                if (fetch_index == 0) {
+                    t.set_invert_color(false);
+                }
             }
-            cursor_visible = false;
         }
 
         draw_statusline();

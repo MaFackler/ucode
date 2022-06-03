@@ -1,7 +1,8 @@
 
 struct CmdOpenDirectory: ICommand {
     void execute(Editor &e) {
-        e.open_dir(".");
+        e.goto_state(EditorState::OPEN_DIRECTORY);
+        e.chooser.open_folder(".");
     }
 };
 
@@ -53,7 +54,13 @@ void Types(vector<const char*> &types) {
     types.emplace_back("class");
 }
 
-void Init(state_command_map &keybindings) {
+void Init(Editor &e, state_command_map &keybindings) {
+    e.chooser.extensions.insert(".cpp");
+    e.chooser.extensions.insert(".h");
+    e.chooser.ignore.insert("libs");
+    e.chooser.ignore.insert("build");
+    e.chooser.ignore.insert("release");
+
     auto *quit = new CmdQuit();
     auto *goto_buffer_normal = new CmdGotoState<EditorState::BUFFER_NORMAL>();
     auto *cursor_left = new CmdMoveCursor<-1, 0>();
@@ -117,6 +124,7 @@ void Init(state_command_map &keybindings) {
         s[Key::j] = new CmdMoveSelection<1>();
         s[Key::k] = new CmdMoveSelection<-1>();
         s[Key::RETURN] = new CmdOpenTarget();
+        s[Key::BACKSPACE] = new CmdBackspaceFilterString();
         s[Key::q + MOD_CTRL] = quit;
     }
 

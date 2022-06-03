@@ -42,10 +42,19 @@ struct CmdQuit: ICommand {
 
 struct CmdOpenTarget: ICommand {
     inline void execute(Editor &e) {
-        auto &sel = e.files.get_index_item();
-        e.open_target(sel.filename().c_str());
+        if (e.chooser.filtered.size() > 0) {
+            e.open_target(e.chooser.files[e.chooser.filtered[0]].string().c_str());
+        }
+    }
+};
 
-        e.files.set_index(0);
+struct CmdBackspaceFilterString: ICommand {
+    inline void execute(Editor &e) {
+        string &t = e.chooser.filter_string;
+        if (t.size()) {
+            t = t.substr(0, t.size() - 1);
+            e.chooser.filter();
+        }
     }
 };
 
