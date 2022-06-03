@@ -70,6 +70,7 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
         switch (c) {
             case 0x0D: def.key = Key::RETURN; break;
             case 0x1B: def.key = Key::ESCAPE; break;
+            case '\t': def.key = Key::TAB; break;
             default: def.key = (Key) c;
         }
     }

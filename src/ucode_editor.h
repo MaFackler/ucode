@@ -52,6 +52,7 @@ public:
     int get_end_col(int row);
     void goto_state(EditorState state);
     void insert_char(char c);
+    void insert_string(const char *s);
     void insert_new_line();
     void remove_char();
 

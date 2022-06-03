@@ -221,6 +221,24 @@ TEST_CASE("Editor::insert_char") {
     CHECK(e.lines[0] == "hel");
 }
 
+void Editor::insert_string(const char *s) {
+    while (char c = *s++) {
+        this->insert_char(c);
+    }
+}
+
+TEST_CASE("Editor::insert_string") {
+    Editor e;
+    CHECK(e.lines.size() == 0);
+    CHECK(e.col == 0);
+
+    e.insert_string("    ");
+    CHECK(e.lines.size() == 1);
+    CHECK(e.lines[0].size() == 4);
+    CHECK(e.col == 4);
+    CHECK(e.lines[0] == "    ");
+}
+
 void Editor::insert_new_line() {
 
     if (this->lines.size()) {

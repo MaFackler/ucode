@@ -20,6 +20,14 @@ struct CmdInsertChar: ICommand {
     }
 };
 
+struct CmdInsertString: ICommand {
+    const char *s;
+    CmdInsertString(const char *s) : s(s) {}
+    void execute(Editor &e) {
+        e.insert_string(s);
+    }
+};
+
 struct CmdChain: ICommand {
     std::vector<ICommand*> cmds;
 
@@ -113,6 +121,7 @@ void Init(Editor &e, state_command_map &keybindings) {
         s[Key::ESCAPE] = goto_buffer_normal;
         s[Key::RETURN] = insert_new_line;
         s[Key::BACKSPACE] = new CmdRemoveChar();
+        s[Key::TAB] = new CmdInsertString("    ");
 
         s[Key::q + MOD_CTRL] = quit;
     }
