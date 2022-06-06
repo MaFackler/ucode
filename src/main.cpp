@@ -6,8 +6,9 @@
 #include <functional>
 
 #include "ucode_test.h"
-#include "ucode_log.h"
 #include "ucode_input.h"
+#include "ucode_platform.h"
+#include "ucode_log.h"
 #include "ucode_renderer.h"
 #include "ucode_editor.h"
 #include "ucode_command.h"
@@ -15,6 +16,7 @@
 #include "../custom/config.h"
 
 #include "ucode_input.cpp"
+#include "ucode_platform.cpp"
 #include "ucode_renderer.cpp"
 #include "ucode_editor.cpp"
 #include "ucode_lexer.cpp"
@@ -33,10 +35,10 @@ static Editor e;
 
 
 void exit_handler() {
-    //r.reset_cursor();
-    r.clear_screen();
-    r.flush();
-    r.shutdown();
+    // r.reset_cursor();
+    // r.clear_screen();
+    // r.flush();
+    // r.shutdown();
 }
 
 
@@ -139,8 +141,8 @@ void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
 
 void draw_statusline() {
     // Draw statusline
-    //r.set_invert_color(true);
-    r.clear_line();
+    // r.set_invert_color(true);
+    // r.clear_line();
     string statusline;
 #if 0
 #TODO color
@@ -161,8 +163,8 @@ void draw_statusline() {
 #endif
     statusline += " " + e.get_current_filename();
     statusline.append(e.screen_columns - statusline.size(), ' ');
-    r.write(statusline.c_str());
-    //r.set_invert_color(false);
+    // r.write(statusline.c_str());
+    // r.set_invert_color(false);
     // r.set_color(TerminalColor::DEFAULT);
 }
 
@@ -172,11 +174,15 @@ int main(int argc, char **argv) {
     Debug << "Logging initialized";
 
     UCODE_TEST;
-    r.init();
+    Platform p;
+    p.open_window(800, 600);
+    r.dx = p.size.cx;
+    r.dy = p.size.cy;
+    r.init(100, 100);
     std::atexit(exit_handler);
-    auto[screen_columns, screen_rows] = r.get_window_size();
-    e.screen_columns = screen_columns;
-    e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
+    // auto[screen_columns, screen_rows] = r.get_window_size();
+    // e.screen_columns = screen_columns;
+    // e.screen_rows = screen_rows - 1;  // TODO: -1 height of statusbar
     e.screen_rows = 40;
     e.screen_columns = 20;
     state_command_map keybindings;
@@ -187,21 +193,17 @@ int main(int argc, char **argv) {
     if (argc == 2) {
         e.open_file(argv[1]);
     }
-    while (!e.quit && !r.close) {
+
+    while (!e.quit && !p.close) {
 
         //term_handle_key(t, keybindings, e);
-        r.handle_input();
+        p.begin();
 
-        for (KeyDef &def: r.keys) {
+        for (KeyDef &def: p.keys) {
             handle_key(keybindings, e, def);
         }
 
         // begin
-        r.begin();
-        r.set_color(RenderColor::GREEN);
-
-        //r.set_cursor_visibility(false);
-        //r.reset_cursor();
         bool cursor_visible = true;
         auto state = e.state();
 
@@ -209,10 +211,10 @@ int main(int argc, char **argv) {
             int endline = e.lines.size();
             enum TokenType hl = TokenType::NONE;
             for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
-                r.clear_line();
 
                 if (row_index < endline) {
                     auto &tokens = e.token_lines[row_index];
+                    int col = 0;
                     for (auto &token: tokens) {
                         if (token.type != hl) {
                             auto c = RenderColor::BLACK;
@@ -228,14 +230,16 @@ int main(int argc, char **argv) {
                             hl = token.type;
                         }
                         if (token.chars.size()) {
-                            r.write(token.chars.c_str());
+                            //r.write(token.chars.c_str());
+                            int s = token.chars.size();
+                            //printf("draw on row %d col %d string '%s' %d\n", row_index, col, token.chars.c_str(), s);
+                            r.push_text(row_index, col, token.chars.c_str(), s);
+                            col += s;
                         }
                     }
                     //t.write(e.lines[row_index].c_str());
                 } else {
-                    r.write("~");
                 }
-                r.write_new_line();
             }
         } else if (state == EditorState::OPEN_DIRECTORY) {
 
@@ -244,7 +248,7 @@ int main(int argc, char **argv) {
                 r.clear_line();
                 if (i < endline) {
                     if (i ==  e.files.index()) {
-                        //r.set_invert_color(true);
+                        r.set_background_color(RenderColor::BLUE);
                     }
                         
 
@@ -254,14 +258,16 @@ int main(int argc, char **argv) {
                     } else {
                         r.set_color(RenderColor::GREEN);
                     }
-                    r.write(file.filename().string().c_str());
+
+                    //r.write(file.filename().string().c_str());
+                    auto &s = file.filename().string();
+                    r.push_text(i, 0, s.c_str(), s.size());
 
                     if (i ==  e.files.index()) {
-                        //r.set_invert_color(false);
+                        r.set_background_color(RenderColor::WHITE);
                     }
 
                 }
-                r.write_new_line();
             }
             cursor_visible = false;
         }
@@ -271,8 +277,56 @@ int main(int argc, char **argv) {
         //r.set_cursor_pos(e.col, e.row - e.scroll_offset);
         //r.set_cursor_visibility(cursor_visible);
 
-        r.end();
         r.flush();
+
+        for (size_t i = 0; i < r.num_commands; ++i) {
+            RenderCommand &cmd = r.commands[i];
+            if (cmd.type == CommandType::RENDER_TEXT) {
+                char *text = &r.text_buffer[cmd.row * r.columns + cmd.col]; 
+                p.draw_text(cmd.col * r.dx, cmd.row * r.dy, text, cmd.n);
+            }
+        }
+        r.num_commands = 0;
+        p.end();
+
+        RECT viewport;
+        GetClientRect(p.hwnd, &viewport);
+
+        if (p.frame_buffer.width && p.frame_buffer.height) {
+            HDC dc = GetDC(p.hwnd);
+
+            BITMAPINFO bi = {0};
+            BITMAPINFOHEADER *header = &bi.bmiHeader;
+            header->biSize = sizeof(*header);
+            header->biWidth = p.frame_buffer.width;
+            header->biHeight = p.frame_buffer.height;
+            header->biPlanes = 1;
+            header->biBitCount = 32;
+            header->biCompression = BI_RGB;
+
+            rgba8 value = {0xFF, 0x00, 0x00, 0xFF};
+
+            for (size_t i = 0; i < p.frame_buffer.width * p.frame_buffer.height; ++i) {
+                p.frame_buffer.data[i] = value;
+            }
+
+            StretchDIBits(dc,
+                          0, 0,
+                          viewport.right - viewport.left,
+                          viewport.bottom - viewport.top,
+                          0, 0, p.frame_buffer.width, p.frame_buffer.height,
+                          p.frame_buffer.data,
+                          &bi,
+                          0, SRCCOPY);
+
+
+            if (!SwapBuffers(dc)) {
+                assert(false);
+            }
+            ReleaseDC(p.hwnd, dc);
+
+        }
+
         Sleep(16);
     }
 

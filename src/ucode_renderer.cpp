@@ -1,133 +1,78 @@
 
-#ifdef _WIN32
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-    switch (msg) {
-        case WM_DESTROY: {
-            PostQuitMessage(0); 
-        } break;
-        default:
-            break;
 
-    }
-    return DefWindowProcA(hwnd, msg, wparam, lparam);
-}
-#endif
-
-void Renderer::init() {
-#ifdef _WIN32
-    HINSTANCE instance = (HINSTANCE) GetModuleHandle(NULL);
-    WNDCLASSA wc = {0};
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = instance;
-    wc.lpszClassName = "UCODE_WINDOW_CLASS";
-    RegisterClassA(&wc);
-    this->hwnd = CreateWindowExA(0,
-                               wc.lpszClassName,
-                               "UCode",
-                               WS_OVERLAPPEDWINDOW,
-                               CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                               NULL,
-                               NULL,
-                               instance,
-                               NULL);
-
-    if (this->hwnd == NULL) {
-        // TODO: handle
-    }
-    ShowWindow(this->hwnd, SW_SHOW);
-    GetClientRect(this->hwnd, &this->rect);
-#endif
+void Renderer::init(size_t rows, size_t columns) {
+    this->rows = rows;
+    this->columns = columns;
+    this->text_buffer_size = rows * columns;
+    this->text_buffer = (char *) malloc(this->text_buffer_size);
 }
 
-void Renderer::handle_input() {
-    this->msg = {};
-    KeyDef def = {};
-    while (PeekMessageA(&this->msg, NULL, 0, 0, PM_REMOVE)) {
-        switch (this->msg.message) {
-            case WM_QUIT:{
-                this->close = true;
-            } break;
-            case WM_PAINT: {
-                //PAINTSTRUCT ps = {};
-                //HDC hdc = BeginPaint(this->hwnd, &ps);
-                ////FillRect(hdc, &rect, 0);
-                //DrawTextA(hdc, "foo", 3, &rect, DT_LEFT);
-                //EndPaint(this->hwnd, &ps);
-            } break;
-            case WM_CHAR: {
-                def.key = (Key) ((char) this->msg.wParam);
-                this->keys.push_back(def);
-            } break;
-            case WM_KEYDOWN: {
-                if (this->msg.wParam == VK_CONTROL) {
-                    def.ctrl = {true};
-                }
-            } break;
-            case WM_KEYUP: {
-                if (this->msg.wParam == VK_CONTROL) {
-                    def.ctrl = {false};
-                }
-            } break;
-        }
-        TranslateMessage(&this->msg);
-        DispatchMessage(&this->msg);
-    }
+TEST_CASE("Renderer::init") {
+    Renderer r;
+    r.init(10, 5);
+    CHECK(r.text_buffer_size == 50);
+    CHECK(r.rows == 10);
+    CHECK(r.columns == 5);
 }
 
-void Renderer::begin() {
-    this->dc = GetDC(this->hwnd);
-    GetTextExtentPoint32A(this->dc, "A", 1, &this->size);
-    this->line_counter = 0;
+
+void Renderer::push_text(int row, int col, const char *text, size_t n) {
+    assert(this->num_commands < AMOUNT_COMMANDS);
+    RenderCommand *cmd = &this->commands[this->num_commands++];
+    cmd->type = CommandType::RENDER_TEXT;
+    cmd->col = col;
+    cmd->row = row;
+    cmd->n = n;
+
+    char *dest = this->text_buffer + (cmd->row * this->columns + cmd->col);
+    memcpy(dest, text, n);
 }
 
-void Renderer::end() {
-    ReleaseDC(this->hwnd, this->dc);
-}
+TEST_CASE("Renderer::push_text") {
+    Renderer r;
+    r.dx = 30;
+    r.dy = 40;
+    r.init(10, 10);
+    CHECK(r.num_commands == 0);
+    r.push_text(1, 2, "test", 4);
 
-void Renderer::set_color(enum RenderColor color) {
-    auto c = this->_get_color(color);
-    SetTextColor(this->dc, c);
-}
-
-void Renderer::write(const char *text) {
-    RECT r;
-    r.left = this->rect.left + (this->column_counter * this->size.cx);
-    r.right = this->rect.right;
-    r.top = this->line_counter * this->size.cy;
-    r.bottom = this->rect.bottom;
-
-    size_t n = strlen(text);
-    this->column_counter += n;
-    DrawTextA(this->dc, text, n, &r, DT_LEFT);
-}
-
-void Renderer::write_new_line() {
-    this->line_counter++;
-    this->column_counter = 0;
+    CHECK(r.num_commands == 1);
+    RenderCommand &cmd = r.commands[0];
+    CHECK(cmd.type == CommandType::RENDER_TEXT);
+    CHECK(cmd.row == 1);
+    CHECK(cmd.col == 2);
 }
 
 COLORREF Renderer::_get_color(enum RenderColor color) {
     COLORREF c = 0x00000000;
     switch (color) {
         case RenderColor::RED:
-            c = 0x00FF0000;
+            c = 0x000000FF;
             break;
         case RenderColor::GREEN:
             c = 0x0000FF00;
             break;
         case RenderColor::BLUE:
-            c = 0x000000FF;
+            c = 0x00FF0000;
             break;
+        case RenderColor::WHITE:
+            c = 0x00FFFFFF;
         default:
             break;
     }
     return c;
 }
 
-void Renderer::set_background_color(enum RenderColor color) {
+void Renderer::set_color(enum RenderColor color) {
     auto c = this->_get_color(color);
-    SetBkColor(this->dc, c);
 }
+
+void Renderer::set_background_color(enum RenderColor color) {
+    // auto c = this->_get_color(color);
+    // SetBkColor(this->dc, c);
+}
+
+
 
 void Renderer::clear_line() {
 }
@@ -141,7 +86,7 @@ void Renderer::clear_screen() {
 }
 
 void Renderer::flush() {
-    //InvalidateRect(this->hwnd, &this->rect, FALSE);
-    this->keys.clear();
+    // InvalidateRect(this->hwnd, &this->rect, FALSE);
+    // this->keys.clear();
 }
 void Renderer::shutdown() {}
