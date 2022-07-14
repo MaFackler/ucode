@@ -11,21 +11,21 @@ TEST_CASE("operator overloading for convenient config") {
     }
 
     SUBCASE("Key + SHIFT") {
-        auto a = Key::j + MOD_SHIFT;
+        auto a = Key::j + UCODE_MOD_SHIFT;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == false);
         CHECK(a.shift.value == true);
     }
 
     SUBCASE("Key + SHIFT + CTRL") {
-        auto a = Key::j + MOD_SHIFT + MOD_CTRL;
+        auto a = Key::j + UCODE_MOD_SHIFT + MOD_CTRL;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == true);
         CHECK(a.shift.value == true);
     }
 
     SUBCASE("Key + CTRL + SHIFT") {
-        auto a = Key::j + MOD_CTRL + MOD_SHIFT;
+        auto a = Key::j + MOD_CTRL + UCODE_MOD_SHIFT;
         CHECK(a.key == Key::j);
         CHECK(a.ctrl.value == true);
         CHECK(a.shift.value == true);

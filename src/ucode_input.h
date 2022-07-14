@@ -49,7 +49,7 @@ enum struct Key {
 // NOTE: wrapper structs to get some strong type checking
 // TODO: maybe its better to use int masks for these flags
 #define MOD_CTRL ctrl_flag{true}
-#define MOD_SHIFT shift_flag{true}
+#define UCODE_MOD_SHIFT shift_flag{true}
 
 struct ctrl_flag {
     bool value;

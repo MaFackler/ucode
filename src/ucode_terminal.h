@@ -1,4 +1,7 @@
 #pragma once
+
+#if _WIN32
+#else
 #include <iostream>
 #include <tuple>
 #include <string>
@@ -58,3 +61,4 @@ private:
     struct termios orginal;
 };
 
+#endif // _WIN32

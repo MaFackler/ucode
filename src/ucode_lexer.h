@@ -18,7 +18,7 @@ enum struct TokenType {
 };
 
 struct Token {
-    TokenType type; 
+    enum TokenType type; 
     //string_view chars;
     // TODO: copies!!! I would like to use string_views but it seems the buffer changes
     string chars;

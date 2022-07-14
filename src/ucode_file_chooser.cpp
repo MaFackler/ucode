@@ -6,6 +6,7 @@ void FileChooser::open_folder(const char *foldername) {
     this->filtered.clear();
     this->files.clear();
     size_t i = 0;
+#if 0
     for (auto &f: std::filesystem::recursive_directory_iterator(foldername)) {
         //auto &ext = f.path().extension();
         if (this->extensions.size() == 0 ||
@@ -27,6 +28,7 @@ void FileChooser::open_folder(const char *foldername) {
 
         }
     }
+#endif
 }
 
 void FileChooser::filter() {

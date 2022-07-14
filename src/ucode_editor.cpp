@@ -8,9 +8,9 @@ void Editor::open_dir(const char *dirname) {
     std::string d = std::string(dirname);
     if (d != ".") {
         if (d == "..") {
-            this->current_folder = fs::path(this->current_folder).parent_path();
+            this->current_folder = fs::path(this->current_folder).parent_path().string();
         } else {
-            this->current_folder = fs::path(this->current_folder) / fs::path(d);
+            this->current_folder = (fs::path(this->current_folder) / fs::path(d)).string();
         }
     } 
 
@@ -172,7 +172,7 @@ TEST_CASE("Editor::move_cursor_end") {
 int Editor::get_end_col(int row) {
     int res = 0;
     if (row < static_cast<int>(this->lines.size())) {
-        res = this->lines[row].size();
+        res = (int) this->lines[row].size();
         if (res > 0 && this->_state == EditorState::BUFFER_NORMAL) {
             res--;
         }
@@ -185,7 +185,7 @@ void Editor::goto_state(EditorState state) {
     if (this->_state == EditorState::BUFFER_NORMAL) {
         auto &line = this->lines[this->row];
         if (lines.size() && this->col == static_cast<int>(line.size())) {
-            this->col = line.size() - 1;
+            this->col = (int) line.size() - 1;
         }
     }
 }
@@ -386,6 +386,10 @@ TEST_CASE("Editor::get_current_filename") {
     CHECK(e.get_current_filename() == "hello_world.txt");
 
     e.current_folder = "subdir";
+#ifdef _WIN32
+    CHECK(e.get_current_filename() == "subdir\\hello_world.txt");
+#else
     CHECK(e.get_current_filename() == "subdir/hello_world.txt");
+#endif
 }
 

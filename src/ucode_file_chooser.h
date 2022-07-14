@@ -2,6 +2,7 @@
 #include "ucode_utils.h"
 #include <set>
 #include <string>
+#include <filesystem>
 
 using std::vector;
 using std::string;
