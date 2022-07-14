@@ -6,7 +6,13 @@
 #include <map>
 #include <functional>
 
+
 #include "ucode_test.h"
+
+#define MF_PLATFORM_USE_OPENGL
+#define MF_PLATFORM_IMPLEMENTATION
+#include "mf_platform.h"
+
 #include "ucode_log.h"
 #include "ucode_input.h"
 #include "ucode_terminal.h"
@@ -14,6 +20,7 @@
 #include "ucode_command.h"
 
 #include "../custom/config.h"
+
 
 #include "ucode_log.cpp"
 #include "ucode_input.cpp"
@@ -141,6 +148,10 @@ int main(int argc, char **argv) {
     LogInit();
     Debug << "Logging initialized";
 
+    mfp_platform platform = {};
+    mfp_init(&platform);
+    mfp_window_open(&platform, "UCode", 0, 0, 1600, 900);
+
     UCODE_TEST;
     //t.init();
     std::atexit(exit_handler);
@@ -157,10 +168,12 @@ int main(int argc, char **argv) {
     if (argc == 2) {
         e.open_file(argv[1]);
     }
-    while (!e.quit) {
+    while (!e.quit && platform.window.isOpen) {
 
         //term_handle_key(t, keybindings, e);
-
+        mfp_begin(&platform);
+        glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // begin
         //t.set_cursor_visibility(false);
@@ -237,7 +250,10 @@ int main(int argc, char **argv) {
 
         t.flush();
 #endif
+        mfp_end(&platform);
     }
+    mfp_window_close(&platform);
+    mfp_destroy(&platform);
 
     return 0;
 }
