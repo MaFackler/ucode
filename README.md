@@ -4,14 +4,26 @@ Vim like code editor
 
 # Build
 
-```
-make
-```
-
-# Test
+Windows: make sure vcvarsall.bat is %PATH% available and execute the misc/shell.bat.
+The best way to set the development environment is to start the "devshell" with
 
 ```
-make test
-make tdd
+cmd.exe /k <...>\misc\shell.bat
+```
+Then the program can be build with:
+
+```
+build
+```
+
+# Run the program
+
+```
+run
+```
+or
+
+```
+build\ucode.exe
 ```
 
