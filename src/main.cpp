@@ -18,6 +18,7 @@
 #include "ucode_terminal.h"
 #include "ucode_editor.h"
 #include "ucode_command.h"
+#include "ucode_renderer.h"
 
 #include "../custom/config.h"
 
@@ -27,6 +28,7 @@
 #include "ucode_file_chooser.cpp"
 #include "ucode_editor.cpp"
 #include "ucode_lexer.cpp"
+#include "ucode_renderer.cpp"
 
 
 
@@ -164,6 +166,8 @@ int main(int argc, char **argv) {
     Keywords(e.lexer.keywords);
     Types(e.lexer.types);
     Init(e, keybindings);
+
+    Renderer renderer;
     
     if (argc == 2) {
         e.open_file(argv[1]);
@@ -172,8 +176,7 @@ int main(int argc, char **argv) {
 
         //term_handle_key(t, keybindings, e);
         mfp_begin(&platform);
-        glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        renderer.clear();
 
         // begin
         //t.set_cursor_visibility(false);
