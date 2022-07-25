@@ -12,6 +12,8 @@
 #define MF_PLATFORM_USE_OPENGL
 #define MF_PLATFORM_IMPLEMENTATION
 #include "mf_platform.h"
+#define MF_OPENGL_IMPLEMENTATION
+#include "mf_opengl.h"
 
 #include "ucode_log.h"
 #include "ucode_input.h"
@@ -51,99 +53,43 @@ void exit_handler() {
 }
 
 
-#if 0
-void term_handle_key(Terminal &t, state_command_map &keybindings, Editor &e) {
-    char c = t.read_char();
+void handle_key(mfp_platform &platform, Editor &e) {
 
-    KeyDef def;
-
-    // Handle escape codes
-    if (c == TERM_ESCAPE_CODE) {
-        char c1 = t.read_char();
-        if (c1 == '[') {
-            char c2 = t.read_char();
-            switch (c2) {
-                case 'A':
-                    def.key = Key::UP;
-                    break;
-                case 'B':
-                    def.key = Key::DOWN;
-                    break;
-                case 'C':
-                    def.key = Key::RIGHT;
-                    break;
-                case 'D':
-                    // LEFT
-                    def.key = Key::LEFT;
-                    break;
-                default:
-                    break;
-            }
+    // NORMAL STATE
+    if (platform.input.keys[MF_KEY_CTRL].down) {
+        if (platform.input.keys['o'].pressed) {
+            e.goto_state(EditorState::OPEN_DIRECTORY);
+            e.open_target(".");
         }
-    }
-
-    if (c && def.key == Key::NONE) {
-        switch (c) {
-            case 0x0D: def.key = Key::RETURN; break;
-            case 0x1B: def.key = Key::ESCAPE; break;
-            case '\t': def.key = Key::TAB; break;
-            default: def.key = (Key) c;
-        }
-    }
-
-    if (def.key != Key::NONE && def.key < Key::SPACE) {
-        // VT 100 ctrl handling
-        // NOTE: Assume all key lower than space are ctrl keys
-        // except Ascii 0
-        def.ctrl.value = true;
-        def.key = Key(0x60 | static_cast<int>(def.key));
-    }
-    
-    auto state = e.state();
-    if (keybindings[state].find(def) != keybindings[state].end()) {
-        ICommand* cmd = keybindings[state][def];
-        cmd->key = def.key;
-        cmd->execute(e);
     } else {
-        // TODO: should this also be a command?
-        char c = static_cast<char>(def.key);
-        if (state == EditorState::BUFFER_INSERT && c >= ' ' && c <= '~') {
-            e.insert_char((char) def.key);
-        } else if (state == EditorState::OPEN_DIRECTORY && c >= ' ' && c <= '~') {
-            e.chooser.filter_string += c;
-            e.chooser.filter();
-        }
     }
-}
-#endif
 
-void draw_statusline() {
-#if 0
-    // Draw statusline
-    t.set_invert_color(true);
-    t.clear_line();
-    string statusline;
-    TerminalColor color = TerminalColor::DEFAULT;
-    switch (e.state()) {
-        case EditorState::BUFFER_NORMAL:
-            statusline += "NORMAL";
-            break;
-        case EditorState::BUFFER_INSERT:
-            statusline += "INSERT";
-            color = TerminalColor::YELLOW;
-            break;
-        case EditorState::OPEN_DIRECTORY:
-            statusline += "OPEN";
-            break;
-    }
-    statusline += " " + e.get_current_filename();
-    statusline.append(e.screen_columns - statusline.size(), ' ');
-    t.set_color(color);
-    t.write(statusline.c_str());
-    t.set_invert_color(false);
-    t.set_color(TerminalColor::DEFAULT);
-#endif
+    // OPEN_DIRECTORY STATE
 }
+
+void render_text(mffo_font *font, const char *text, float x, float y) {
+
+    for (int i = 0; i < strlen(text); ++i) {
+        auto ch = font->characters[text[i]];
+        float ystart = y - ch.ybearing;
+        glBegin(GL_QUADS);
+            glTexCoord2f(ch.u0, ch.v0);
+            glVertex2f(x + ch.xbearing, ystart);
+            //glVertex2f(-1.0f, -1.0f);
+            glTexCoord2f(ch.u1, ch.v0);
+            glVertex2f(x + ch.xbearing + ch.width, ystart);
+            //glVertex2f(1.0f, -1.0f);
+            glTexCoord2f(ch.u1, ch.v1);
+            glVertex2f(x + ch.xbearing + ch.width, ystart + ch.height);
+            //glVertex2f(1.0f, 1.0f);
+            glTexCoord2f(ch.u0, ch.v1);
+            glVertex2f(x + ch.xbearing, ystart + ch.height);
+            //glVertex2f(-1.0f, 1.0f);
+        glEnd();
+        x += ch.advance;
+    }
+}
+
 
 int main(int argc, char **argv) {
 
@@ -152,11 +98,25 @@ int main(int argc, char **argv) {
 
     mfp_platform platform = {};
     mfp_init(&platform);
-    mfp_window_open(&platform, "UCode", 0, 0, 1600, 900);
+    const int width = 1600;
+    const int height = 900;
+    mfp_window_open(&platform, "UCode", 0, 0, width, height);
 
     UCODE_TEST;
     //t.init();
     std::atexit(exit_handler);
+
+    mffo_font font;
+#ifdef _WIN32
+    const char *path = "c:/windows/fonts/arialbd.ttf";
+#else
+    const char *path = "/usr/share/fonts/ubuntu/Ubuntu-B.ttf";
+#endif
+    mffo_font_init(&font, path, 42.0f);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    u32 texture_font = mfgl_texture_create_argb(FONT_ATLAS_DIM, FONT_ATLAS_DIM, font.data);
     //auto[screen_columns, screen_rows] = t.get_window_size();
     auto screen_columns = 30;
     auto screen_rows = 30;
@@ -168,19 +128,21 @@ int main(int argc, char **argv) {
     Init(e, keybindings);
 
     Renderer renderer;
+
+    mfgl_viewport_bottom_up(width, height);
     
     if (argc == 2) {
         e.open_file(argv[1]);
     }
+
+    mfgl_texture_bind(texture_font);
     while (!e.quit && platform.window.isOpen) {
 
-        //term_handle_key(t, keybindings, e);
         mfp_begin(&platform);
+        handle_key(platform, e);
         renderer.clear();
 
         // begin
-        //t.set_cursor_visibility(false);
-        //t.reset_cursor();
         bool cursor_visible = true;
         auto state = e.state();
 
@@ -188,71 +150,27 @@ int main(int argc, char **argv) {
             size_t endline = e.lines.size();
             enum TokenType hl = TokenType::NONE;
             for (int row_index = e.scroll_offset; row_index < e.scroll_offset + e.screen_rows; ++row_index) {
-                //t.clear_line();
 
                 if (row_index < endline) {
                     auto &tokens = e.token_lines[row_index];
                     for (auto &token: tokens) {
                         if (token.type != hl) {
-#if 0
-                            auto c = TerminalColor::DEFAULT;
-                            if (token.type == TokenType::NONE) {
-                            } else if (token.type == TokenType::NUMBER) {
-                                c = TerminalColor::MAGENTA;
-                            } else if (token.type == TokenType::KEYWORD) {
-                                c = TerminalColor::RED;
-                            } else if (token.type == TokenType::TYPE) {
-                                c = TerminalColor::YELLOW;
-                            }
-                            t.set_color(c);
-                            hl = token.type;
-#endif
                         }
                         if (token.chars.size()) {
-                            //t.write(token.chars.c_str());
                         }
                     }
-                    //t.write(e.lines[row_index].c_str());
                 } else {
-                    //t.write("~");
                 }
-                //t.write_new_line();
             }
         } else if (state == EditorState::OPEN_DIRECTORY) {
-
-#if 0
-            cursor_visible = false;
-            t.clear_line();
-            t.write(e.chooser.filter_string.c_str());
-            t.write_new_line();
-
-            size_t s = e.chooser.filtered.size();
-            for (int i = 1; i < e.screen_rows; ++i) {
-                int fetch_index = i - 1;
-                if (fetch_index == 0) {
-                    t.set_invert_color(true);
-                }
-                t.clear_line();
-                if (fetch_index < s) {
-                    int index = e.chooser.filtered[fetch_index];
-                    t.write(e.chooser.files[index].c_str());
-                }
-                t.write_new_line();
-                if (fetch_index == 0) {
-                    t.set_invert_color(false);
-                }
+            float y = height - font.ascent;
+            for (auto &file: e.files) {
+                render_text(&font, file.string().c_str(), 0, y);
+                y -= font.ascent - font.descent + font.linegap;
             }
-#endif
         }
 
-        draw_statusline();
 
-#if 0
-        t.set_cursor_pos(e.col, e.row - e.scroll_offset);
-        t.set_cursor_visibility(cursor_visible);
-
-        t.flush();
-#endif
         mfp_end(&platform);
     }
     mfp_window_close(&platform);
